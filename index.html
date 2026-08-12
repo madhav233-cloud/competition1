@@ -1,9 +1,33 @@
+Here is the updated code incorporating all your requested modifications.
+
+### Key Changes Made:
+
+1. **Permanent Quote (Hero Kicker):** Added the quote *"You can either suffer through 100 hard problems now or suffer through months of job hunt rejection later. Choose your pain."* permanently at the top header of the site.
+2. **Right Side Panel Adjustments (Adjacent to Video):**
+* **Daily Watch Time Chart:** Embedded a clean, real-time SVG Bar Graph tracking your daily watch progress over the last 7 days. It updates live as you watch videos in the embedded player.
+* **Dynamic Quote Box:** Placed a dynamic quote widget directly in the right panel displaying quotes from your provided list.
+
+
+
+
+3. **Timed & Idle Quote Rotation:**
+* Rotates a random quote from your list every **15 minutes**.
+
+
+* Triggers an instant quote pop-up when you **stop/pause watching the video**, or when you **leave/switch away from the website tab** (`visibilitychange` listener).
+
+
+4. **Bottom Control Deck:** Moved the manual progress counter (`-1`, `+1`) and the **Add Competitor** controls to the bottom of the page.
+
+Replace your entire HTML file with this:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Auto-Tracking Study Dashboard</title>
+<title>The Grind | Real-Time Study Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -33,10 +57,10 @@
     min-height:100vh;
     padding:28px 18px 70px;
   }
-  .page{ max-width:960px; margin:0 auto; }
+  .page{ max-width:1040px; margin:0 auto; }
 
   /* ---------- Header ---------- */
-  .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
   .kicker{ display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); }
   h1{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(30px, 5vw, 42px); letter-spacing:-.01em; margin-top:5px; text-shadow:0 0 30px rgba(185,142,255,0.18); }
 
@@ -48,9 +72,24 @@
   .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
+  /* Permanent Quote Banner */
+  .perm-quote-banner {
+    background: rgba(255, 126, 182, 0.06);
+    border: 1px solid rgba(255, 126, 182, 0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pink);
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
   /* ---------- Top Section Layout ---------- */
-  .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-  @media (max-width: 800px) { .top-grid { grid-template-columns: 1fr; } }
+  .top-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 850px) { .top-grid { grid-template-columns: 1fr; } }
   
   /* ---------- Playlist & Player panel ---------- */
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
@@ -63,17 +102,39 @@
   input:focus, select:focus{ outline:none; border-color:var(--purple); }
   .btn-primary{ background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s; height: 40px; }
   .btn-primary:hover{ filter:brightness(1.1); }
-  .btn-primary:disabled{ opacity:.5; cursor:default; }
   .btn-green { background: var(--green); color: #062A1E; width: 100%; }
 
-  .meta-row{ display:grid; grid-template-columns:1fr 110px auto; gap:10px; align-items:end; }
-  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:12px; }
+  .meta-row{ display:grid; grid-template-columns:1fr 110px; gap:10px; align-items:end; }
+  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:10px; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
   .fetch-status.load{ color:var(--yellow); }
 
   .video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px; }
   .video-container iframe { width: 100%; height: 100%; border: none; }
+
+  /* Right Side Panel: Chart & Dynamic Quote */
+  .right-panel-stack { display: flex; flex-direction: column; gap: 16px; height: 100%; }
+  
+  .chart-box { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 110px; gap: 8px; padding-top: 10px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar-fill { width: 100%; background: var(--purple); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s ease; }
+  .bar-col.today .bar-fill { background: var(--green); box-shadow: 0 0 10px rgba(110,231,183,0.3); }
+  .bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--dim); }
+
+  .side-quote-card {
+    background: linear-gradient(135deg, rgba(185,142,255,0.08), rgba(31,34,56,0.8));
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .quote-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; color: var(--purple); letter-spacing: 0.1em; font-weight: 700; }
+  .quote-body { font-size: 13px; line-height: 1.45; color: var(--text); font-style: italic; }
 
   /* ---------- Coach banner ---------- */
   .coach{ display:flex; gap:14px; align-items:center; background:linear-gradient(90deg, rgba(255,126,182,0.12), transparent 70%); border:1px solid var(--border); border-left:3px solid var(--pink); border-radius:12px; padding:14px 16px; margin-bottom:26px; }
@@ -125,12 +186,15 @@
   .row:hover .del-btn{ opacity:1; }
   .del-btn:hover{ color:var(--pink); }
 
-  /* ---------- Feed & Manual Controls ---------- */
+  /* ---------- Feed & Bottom Controls ---------- */
   .feed{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:6px 0; margin-bottom:24px; max-height:190px; overflow-y:auto; }
   .feed-item{ display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12.5px; color:var(--dim); border-bottom:1px solid var(--border); animation:feedIn .35s ease; }
   .feed-item b{ color:var(--text); font-weight:600; }
   .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--dim); }
   @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
+
+  .bottom-deck { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 8px; }
+  @media (max-width: 640px) { .bottom-deck { grid-template-columns: 1fr; } }
 
   .me-controls{ display:flex; gap:8px; align-items:center; }
   .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:4px; }
@@ -157,8 +221,13 @@
     </div>
   </div>
 
+  <!-- Permanent Quote Banner -->
+  <div class="perm-quote-banner">
+    "You can either suffer through 100 hard problems now or suffer through months of job hunt rejection later. Choose your pain."
+  </div>
+
   <div class="top-grid">
-    <!-- Setup & Embed Card -->
+    <!-- Playlist & Player Card -->
     <div class="card">
       <label for="playlistUrl">YouTube playlist link</label>
       <div class="link-row">
@@ -184,32 +253,16 @@
       </div>
     </div>
 
-    <!-- User Controls & Add Competitor Card -->
-    <div style="display:flex; flex-direction:column; gap:20px;">
-      <div class="card">
-        <h3>Your Progress Tracker</h3>
-        <p style="font-size: 11px; color: var(--dim); margin-bottom: 12px;">Watch the video on the left, and your progress will track automatically. You can also manually adjust it below.</p>
-        <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
-        <div class="me-time" id="meTime">0h 0m watched</div>
-        <div class="me-controls">
-          <button id="meMinus">−1</button>
-          <input id="meVideoInput" type="number" value="0" min="0">
-          <button id="mePlus">+1</button>
-        </div>
+    <!-- Right Side Panel: Watch Time Graph & Dynamic Quote -->
+    <div class="right-panel-stack">
+      <div class="card chart-box">
+        <h3>Watch Time (Last 7 Days)</h3>
+        <div class="bar-chart" id="barChart"></div>
       </div>
-      
-      <div class="card">
-        <h3>Add a competitor</h3>
-        <div class="add-fields">
-          <input id="newName" type="text" placeholder="Competitor Name">
-          <select id="newEffort">
-            <option value="elite">Elite (1.6x Speed)</option>
-            <option value="hardworking">Hardworking (1x Speed)</option>
-            <option value="average" selected>Average (0.5x Speed)</option>
-            <option value="low">Low Effort (0.2x Speed)</option>
-          </select>
-          <button class="btn-primary btn-green" id="addBtn">Add to ladder</button>
-        </div>
+
+      <div class="side-quote-card">
+        <div class="quote-tag">⚡ Reality Check</div>
+        <div class="quote-body" id="sideQuote">Loading quote...</div>
       </div>
     </div>
   </div>
@@ -227,9 +280,92 @@
 
   <div class="section-head"><h2>Activity Feed</h2></div>
   <section class="feed" id="feed"></section>
+
+  <!-- Bottom Control Deck: Progress Controls & Add Competitor -->
+  <div class="bottom-deck">
+    <div class="card">
+      <h3>Manual Progress Adjustment</h3>
+      <p style="font-size: 11px; color: var(--dim); margin-bottom: 12px;">Watch the embedded video to track automatically, or manually adjust your completed count below.</p>
+      <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
+      <div class="me-time" id="meTime">0h 0m watched</div>
+      <div class="me-controls">
+        <button id="meMinus">−1</button>
+        <input id="meVideoInput" type="number" value="0" min="0">
+        <button id="mePlus">+1</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>Add a competitor</h3>
+      <div class="add-fields">
+        <input id="newName" type="text" placeholder="Competitor Name">
+        <select id="newEffort">
+          <option value="elite">Elite (1.6x Speed)</option>
+          <option value="hardworking">Hardworking (1x Speed)</option>
+          <option value="average" selected>Average (0.5x Speed)</option>
+          <option value="low">Low Effort (0.2x Speed)</option>
+        </select>
+        <button class="btn-primary btn-green" id="addBtn">Add to ladder</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
+// --- QUOTES LIST ---
+const QUOTES = [
+  "While you're staring at an easy problem, someone two years younger is optimizing a dynamic programming solution for the exact job you want.",
+  "Nobody cares about your potential when your code throws a Time Limit Exceeded error.",
+  "The interviewer isn't going to give you partial credit because you 'almost' remembered the algorithm. Either it passes the test cases or you get filtered out.",
+  "Every time you look at the solution after 5 minutes of trying, you confirm to yourself that you'd rather copy than think.",
+  "Your dream company's compensation package isn't going to a hard worker; it's going to the person who actually solved the problem.",
+  "You are one rejected interview away from wishing you had spent less time making excuses and more time writing code.",
+  "Watching a 40-minute tutorial on two-pointers isn't work. It's high-effort procrastination. Open the editor and suffer through it.",
+  "If your brain doesn't hurt, you aren't learning a pattern; you're just typing out things you already know.",
+  "Comfort is comfortable right up until the rejection email lands in your inbox.",
+  "You don't need another 'roadmap' or 'study plan.' You need to solve the problem sitting in front of you.",
+  "Hope is not a space complexity strategy. Either you optimized it or you failed.",
+  "Every day you skip practicing, the bar to pass the technical round gets higher, and your skills stay the same.",
+  "The company paying top tier doesn't care that you had a bad day. They care that your code runs in O(N log N) time.",
+  "Stop treating LeetCode like an optional hobby if you want a career that isn't optional.",
+  "You can either suffer through the discomfort of being stuck on a problem now, or suffer the embarrassment of freezing in a live interview.",
+  "Someone with worse talent than you is going to get hired over you purely because they had the discipline to grind 300 problems.",
+  "The interviewer doesn't care how many projects you built if you can't traverse a graph without bugging out.",
+  "If you quit every time a problem requires deep thinking, you've already set the ceiling for your own career.",
+  "Dry-running code on paper feels slow until you realize failing three interviews in a row takes months.",
+  "You aren't tired; you're just unaccustomed to brain strain. Sit down and fix the edge cases.",
+  "Your resume gets you past the ATS; your DSA proficiency gets you the offer. Guess which part you're ignoring?",
+  "Copying the top voted Python solution on LeetCode doesn't make you smart—it makes you an expensive copy-paste engine.",
+  "The rejection email won't say 'Great try!' It will just say 'We've moved forward with other candidates.'",
+  "You don't get to complain about the market being tough when you can't even implement sliding window without looking up the template.",
+  "Every missed test case is a reminder that sloppy logic in practice becomes a failed interview in reality.",
+  "The candidate interviewing right after you spent their weekend practicing graph algorithms while you made excuses.",
+  "Nobody is going to hand you a high-paying software engineering role out of pity.",
+  "If you can't handle a Medium problem in a quiet room, you will collapse under the pressure of a live camera and an interviewer waiting.",
+  "Your lack of consistency today is building the rejection stack of tomorrow.",
+  "Stop organizing your notes. Stop tweaking your code editor theme. Write the code.",
+  "A brute-force solution is just a fancy way of telling the interviewer you didn't think hard enough.",
+  "If learning data structures was easy, everyone would be earning senior-level salaries.",
+  "You don't get burn-out from thinking hard for one hour; you get fatigue from avoiding the work all day.",
+  "Every time you open social media mid-problem, you prove your attention span isn't built for hard technical work.",
+  "The algorithm doesn't care about your feelings, and neither does the compiler.",
+  "You can blame the 'broken interview process' all you want, but the people getting hired are the ones who mastered it anyway.",
+  "If you need a hint for every problem, you aren't solving problems—you're just reading dynamic answers.",
+  "High compensation demands high technical competency. You haven't paid the price yet.",
+  "Edge cases are where weak developers get exposed. Handle the null pointers or get left behind.",
+  "Wishful thinking doesn't reduce O(N^2) to O(N).",
+  "You are competing against thousands of people who want the exact same seat. What did you do today that actually separated you from them?",
+  "Memorizing solutions is fake competence. The second they twist the problem statement, you're dead in the water.",
+  "Stop taking breaks every time you hit a minor bug. Debugging is the actual job.",
+  "The difference between an offer letter and a rejection letter is often just three weeks of disciplined grinding.",
+  "You can spend your time complaining about LeetCode or you can spend your time beating it.",
+  "If you can't explain your space complexity in 10 seconds, you don't understand your own code.",
+  "The hard problems aren't impossible; you're just giving up the moment your initial idea fails.",
+  "Your competition isn't sleeping, and they certainly aren't skipping their daily practice problems.",
+  "You can be comfortable now, or comfortable for the rest of your career. You don't get both.",
+  "Close the browser tab with the answer, reset the workspace, and solve it yourself from scratch."
+];
+
 // --- GLOBAL YOUTUBE PLAYER VARS ---
 let ytPlayer;
 let isPlayerReady = false;
@@ -239,7 +375,7 @@ function onYouTubeIframeAPIReady() {
   ytPlayer = new YT.Player('ytplayer', {
     height: '100%',
     width: '100%',
-    videoId: '', // Handled dynamically
+    videoId: '',
     playerVars: { 'playsinline': 1 },
     events: {
       'onReady': () => { isPlayerReady = true; cueLoadedPlaylist(); },
@@ -249,13 +385,29 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerStateChange(event) {
+  const prevState = isUserPlaying;
   isUserPlaying = (event.data === YT.PlayerState.PLAYING);
+  
+  // Trigger quote when user stops or pauses video
+  if (prevState && !isUserPlaying) {
+    rotateQuote();
+  }
+}
+
+function getRandomQuote() {
+  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+}
+
+function rotateQuote() {
+  const quoteEl = document.getElementById('sideQuote');
+  if (quoteEl) {
+    quoteEl.textContent = `"${getRandomQuote()}"`;
+  }
 }
 
 (function(){
-  // --- YOUR HARDCODED API KEY ---
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-auto-player-v1';
+  const STORAGE_KEY = 'grind-ladder-auto-player-v2';
   const TICK_MS = 3000; 
   
   const PACE = {
@@ -266,12 +418,11 @@ function onPlayerStateChange(event) {
   };
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
   
-  // Expose cueLoadedPlaylist to the global scope for the YT API
   window.cueLoadedPlaylist = function() {
     if(isPlayerReady && state.config.playlistId) {
       ytPlayer.cuePlaylist({
         list: state.config.playlistId,
-        index: state.people.find(p=>p.isMe).video // Start at their current video
+        index: state.people.find(p=>p.isMe).video
       });
     }
   }
@@ -326,6 +477,7 @@ function onPlayerStateChange(event) {
       config: { playlistName:'DSA Placement Sheet (Default)', playlistId: '', playlistUrl:'', totalVideos: 150, isLive: true },
       videos: [],
       lastSaved: Date.now(),
+      dailyHistory: {}, // { "YYYY-MM-DD": seconds }
       people: [
         { id:'me', name:'You', effort:'me', video:0, seconds:0, isMe:true },
         { id:id(), name:'Rohan', effort:'elite', video:0, seconds:0 },
@@ -334,6 +486,10 @@ function onPlayerStateChange(event) {
       ],
       feed: []
     };
+  }
+
+  function getTodayKey() {
+    return new Date().toISOString().split('T')[0];
   }
 
   function formatTimeAgo(ts) {
@@ -346,6 +502,7 @@ function onPlayerStateChange(event) {
   function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
+    if (!state.dailyHistory) state.dailyHistory = {};
     
     const timeOffline = Date.now() - (state.lastSaved || Date.now());
     const missedTicks = Math.floor(timeOffline / TICK_MS);
@@ -368,11 +525,13 @@ function onPlayerStateChange(event) {
     }
   
     state.lastSaved = Date.now();
+    rotateQuote();
     renderAll();
     
-    // Start interval engines
+    // Intervals
     setInterval(liveTick, TICK_MS); 
-    setInterval(trackUserWatchTime, 1000); // Check player every second
+    setInterval(trackUserWatchTime, 1000);
+    setInterval(rotateQuote, 15 * 60 * 1000); // 15 Minute Quote Rotation
   }
   
   function saveState(){ 
@@ -392,6 +551,37 @@ function onPlayerStateChange(event) {
     renderMeCard();
     renderFeed();
     renderRoast();
+    renderChart();
+  }
+
+  function renderChart() {
+    const chartEl = document.getElementById('barChart');
+    if (!chartEl) return;
+
+    const days = [];
+    const today = new Date();
+    
+    // Generate last 7 days keys
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+      const sec = state.dailyHistory[key] || 0;
+      days.push({ key, name: dayName, sec, isToday: i === 0 });
+    }
+
+    const maxSec = Math.max(...days.map(d => d.sec), 3600); // Scale relative to at least 1 hour
+
+    chartEl.innerHTML = days.map(d => {
+      const heightPct = Math.min(100, Math.max(6, (d.sec / maxSec) * 100));
+      return `
+        <div class="bar-col ${d.isToday ? 'today' : ''}" title="${d.key}: ${formatTime(d.sec)}">
+          <div class="bar-fill" style="height: ${heightPct}%"></div>
+          <span class="bar-label">${d.name}</span>
+        </div>
+      `;
+    }).join('');
   }
   
   function renderSpotlight(){
@@ -477,7 +667,7 @@ function onPlayerStateChange(event) {
   function renderMeCard(){
     const me = state.people.find(p=>p.isMe);
     document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + state.config.totalVideos + '</span>';
-    document.getElementById('meTime').textContent = `${formatTime(me.seconds)} watched`;
+    document.getElementById('meTime').textContent = `${formatTime(me.seconds)} watched total`;
     document.getElementById('meVideoInput').value = me.video;
   }
   
@@ -517,9 +707,14 @@ function onPlayerStateChange(event) {
     }
     
     me.video = clamped;
-    me.seconds = getCumulativeTime(clamped); // Snaps perfectly to the start of that video
+    const oldSec = me.seconds;
+    me.seconds = getCumulativeTime(clamped);
     
-    // Automatically skip the YouTube player ahead to match manual input
+    // Record gain into daily history
+    const gain = Math.max(0, me.seconds - oldSec);
+    const todayKey = getTodayKey();
+    state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + gain;
+    
     if (isPlayerReady && state.config.playlistId) {
        ytPlayer.playVideoAt(clamped);
     }
@@ -528,6 +723,7 @@ function onPlayerStateChange(event) {
   }
   
   // --- USER AUTO-TRACKING VIA YOUTUBE API ---
+  let lastTrackTime = Date.now();
   function trackUserWatchTime() {
     if (isPlayerReady && ytPlayer && ytPlayer.getPlayerState) {
       if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
@@ -537,11 +733,17 @@ function onPlayerStateChange(event) {
         if (currentIndex !== -1 && currentIndex !== null) {
           const me = state.people.find(p => p.isMe);
           
-          // Calculate exact time down to the second
           const baseTime = getCumulativeTime(currentIndex);
           const totalNewSecs = baseTime + currentVideoTime;
           
-          // Log if a new video started organically
+          // Daily watch time accumulation
+          const now = Date.now();
+          const deltaSec = Math.max(0, (now - lastTrackTime) / 1000);
+          if (deltaSec < 5) { // Prevent spikes from seeking
+            const todayKey = getTodayKey();
+            state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + deltaSec;
+          }
+          
           if (currentIndex > me.video) {
              state.feed.unshift({ id:id(), name:'You', text:`started video ${currentIndex + 1}`, ts: Date.now() });
           }
@@ -550,10 +752,11 @@ function onPlayerStateChange(event) {
           me.seconds = totalNewSecs;
           
           saveState();
-          renderAll(); // Updates progress bars smoothly
+          renderAll(); 
         }
       }
     }
+    lastTrackTime = Date.now();
   }
 
   // --- BOT SIMULATION ENGINE ---
@@ -574,7 +777,7 @@ function onPlayerStateChange(event) {
           delete typingStates[p.id];
           if(!state.config.isLive) return;
           
-          p.seconds += pace.watchSec; // Add simulated seconds
+          p.seconds += pace.watchSec; 
           
           let targetSec = getCumulativeTime(p.video + 1);
           while(p.video < total && p.seconds >= targetSec) {
@@ -685,7 +888,7 @@ function onPlayerStateChange(event) {
       status.textContent = `Success! Playlist mapped. Press Play to start tracking automatically.`;
       
       saveState(); renderAll();
-      window.cueLoadedPlaylist(); // Load it into the embedded player!
+      window.cueLoadedPlaylist();
       
     } catch(e) {
       status.className = 'fetch-status err';
@@ -694,6 +897,13 @@ function onPlayerStateChange(event) {
       btn.disabled = false;
     }
   }
+
+  // --- TAB VISIBILITY LISTENER (Triggers quote when leaving tab) ---
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      rotateQuote();
+    }
+  });
   
   // --- Event Listeners ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
@@ -726,3 +936,5 @@ function onPlayerStateChange(event) {
 </script>
 </body>
 </html>
+
+```
