@@ -1,27 +1,4 @@
-Here is the updated code incorporating all your requested modifications.
 
-### Key Changes Made:
-
-1. **Permanent Quote (Hero Kicker):** Added the quote *"You can either suffer through 100 hard problems now or suffer through months of job hunt rejection later. Choose your pain."* permanently at the top header of the site.
-2. **Right Side Panel Adjustments (Adjacent to Video):**
-* **Daily Watch Time Chart:** Embedded a clean, real-time SVG Bar Graph tracking your daily watch progress over the last 7 days. It updates live as you watch videos in the embedded player.
-* **Dynamic Quote Box:** Placed a dynamic quote widget directly in the right panel displaying quotes from your provided list.
-
-
-
-
-3. **Timed & Idle Quote Rotation:**
-* Rotates a random quote from your list every **15 minutes**.
-
-
-* Triggers an instant quote pop-up when you **stop/pause watching the video**, or when you **leave/switch away from the website tab** (`visibilitychange` listener).
-
-
-4. **Bottom Control Deck:** Moved the manual progress counter (`-1`, `+1`) and the **Add Competitor** controls to the bottom of the page.
-
-Replace your entire HTML file with this:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
