@@ -1,22 +1,9 @@
-This is exactly how a real study tracker should work. I have completely rebuilt the engine to track **actual time based on video durations** rather than just counting the number of videos.
-
-Here is exactly how this new version works to match your requirements:
-
-1. **Everyone Starts at Zero:** All bots and you start at 0 videos and 0h 0m watched.
-2. **True Video Length Tracking:** The engine now makes multiple deep calls to the YouTube API. It looks inside the playlist, finds every single video, grabs their exact timestamps (e.g., 10 mins, 1 hour 5 mins), and calculates the true length of the entire playlist.
-3. **Linear Progress Bars:** The progress percentages are now based on **Time, not Video Count**. If Video #1 is 5 minutes long and Video #2 is 2 hours long, finishing Video #2 will move your progress bar significantly more than Video #1.
-4. **Smooth Bot Progress:** The bots now "watch" the videos in seconds. Their progress bars will slowly fill up *while* they are watching a long video, and their video count only ticks up when they have accumulated enough watch time to finish that specific video.
-5. **Hardcoded API Key:** Your API key is safely hardcoded. The input box is gone.
-
-Here is your final, mathematically accurate tracker code. Replace your file with this:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Time-Based Tracker</title>
+<title>The Grind | Real-Time Study Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -122,7 +109,7 @@ Here is your final, mathematically accurate tracker code. Replace your file with
   .tag{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; padding:2px 7px; border-radius:5px; border:1px solid currentColor; }
   .tag-you{ background:var(--yellow); color:#231903; border:none; font-weight:700; }
   .row-bar{ height:6px; border-radius:3px; background:#0F1120; overflow:hidden; }
-  .row-bar-fill{ height:100%; border-radius:3px; transition:width 0.8s ease; }
+  .row-bar-fill{ height:100%; border-radius:3px; transition:width 0.5s ease-out; }
   .row-right{ text-align:right; flex-shrink:0; font-family:'IBM Plex Mono', monospace; }
   .row-count{ font-size:14px; font-weight:700; }
   .row-time{ font-size:9.5px; color:var(--dim); margin-top:2px; }
@@ -135,6 +122,7 @@ Here is your final, mathematically accurate tracker code. Replace your file with
   .feed{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:6px 0; margin-bottom:24px; max-height:190px; overflow-y:auto; }
   .feed-item{ display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12.5px; color:var(--dim); border-bottom:1px solid var(--border); animation:feedIn .35s ease; }
   .feed-item b{ color:var(--text); font-weight:600; }
+  .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--dim); }
   @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
   .controls{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
@@ -155,7 +143,7 @@ Here is your final, mathematically accurate tracker code. Replace your file with
 <div class="page">
   <div class="top">
     <div>
-      <span class="kicker">● Live Time-Based Tracking</span>
+      <span class="kicker">● Live Time-Based Tracker</span>
       <h1 id="pageTitle">Ladder</h1>
     </div>
     <div class="live-cluster">
@@ -168,21 +156,21 @@ Here is your final, mathematically accurate tracker code. Replace your file with
     <label for="playlistUrl">YouTube playlist link</label>
     <div class="link-row">
       <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
-      <button id="fetchBtn">Sync Playlist & Durations</button>
+      <button id="fetchBtn">Auto-Sync Durations</button>
     </div>
     
     <div class="meta-row">
       <div>
         <label for="playlistName">Playlist name</label>
-        <input id="playlistName" type="text" value="DSA Placement Sheet" readonly style="opacity: 0.7;">
+        <input id="playlistName" type="text" value="DSA Placement Sheet">
       </div>
       <div>
         <label for="totalVideos">Total Videos</label>
-        <input id="totalVideos" type="number" value="150" min="1" readonly style="opacity: 0.7;">
+        <input id="totalVideos" type="number" value="150" min="1">
       </div>
       <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open ↗</a>
     </div>
-    <div class="fetch-status" id="fetchStatus">Paste a link to grab exact video lengths. (Currently using 10 min fallback videos).</div>
+    <div class="fetch-status" id="fetchStatus">Paste a link to grab exact video lengths, or simply manually edit the values above.</div>
   </section>
 
   <section class="coach">
@@ -215,10 +203,10 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       <div class="add-fields">
         <input id="newName" type="text" placeholder="Competitor Name">
         <select id="newEffort">
-          <option value="elite">Elite (Fast)</option>
-          <option value="hardworking">Hardworking</option>
-          <option value="average" selected>Average</option>
-          <option value="low">Low Effort (Slow)</option>
+          <option value="elite">Elite (1.6x Speed)</option>
+          <option value="hardworking">Hardworking (1x Speed)</option>
+          <option value="average" selected>Average (0.5x Speed)</option>
+          <option value="low">Low Effort (0.2x Speed)</option>
         </select>
         <button class="btn-primary" id="addBtn">Add to ladder</button>
       </div>
@@ -228,73 +216,77 @@ Here is your final, mathematically accurate tracker code. Replace your file with
 
 <script>
 (function(){
-  // --- HARDCODED API KEY ---
+  // --- YOUR HARDCODED API KEY ---
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-time-based-v1';
-  const TICK_MS = 3500;
+  const STORAGE_KEY = 'grind-ladder-time-vfinal';
+  const TICK_MS = 3000; // Engine ticks every 3 seconds
   
-  // WatchSec dictates how many simulated seconds of a video they consume per tick
+  // Real-time study pacing logic
+  // WatchSec = simulated seconds of video consumed per real 3s tick
   const PACE = {
-    elite: { tickChance: 0.60, watchSec: 1500 }, // Consumes ~25 mins of video per tick
-    hardworking: { tickChance: 0.50, watchSec: 900 },
-    average: { tickChance: 0.35, watchSec: 600 },
-    low: { tickChance: 0.20, watchSec: 300 }
+    elite: { tickChance: 0.8, watchSec: 6 },        // ~1.6x real-time speed
+    hardworking: { tickChance: 0.7, watchSec: 4 },  // ~0.93x real-time speed
+    average: { tickChance: 0.5, watchSec: 3 },      // ~0.50x real-time speed
+    low: { tickChance: 0.2, watchSec: 2 }           // ~0.13x real-time speed
   };
+  
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
-
+  
   let state = null;
-  let typingStates = {}; // Used for the visual "watching" green dot indicator
-
+  let typingStates = {};
+  
   function id(){ return Math.random().toString(36).slice(2,10); }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // Format seconds into "12h 30m"
+  
+  // Format seconds to clean string (e.g., "1h 15m")
   function formatTime(sec) {
-    if (!sec || sec < 0) return '0h 0m';
+    if (!sec || sec <= 0) return '0m';
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     if (h > 0) return `${h}h ${m}m`;
-    return `${m}m`;
+    if (m > 0) return `${m}m`;
+    return `<1m`;
   }
-
-  // Parse YouTube's ISO 8601 duration (e.g., PT1H15M33S) into total seconds
+  
+  // Parse YouTube ISO 8601 Duration safely
   function parsePT(duration) {
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return 0;
-    const h = parseInt(match[1]) || 0;
-    const m = parseInt(match[2]) || 0;
-    const s = parseInt(match[3]) || 0;
-    return (h * 3600) + (m * 60) + s;
+    let total = 0;
+    const days = duration.match(/(\d+)D/);
+    const hours = duration.match(/(\d+)H/);
+    const mins = duration.match(/(\d+)M/);
+    const secs = duration.match(/(\d+)S/);
+    if (days) total += parseInt(days[1]) * 86400;
+    if (hours) total += parseInt(hours[1]) * 3600;
+    if (mins) total += parseInt(mins[1]) * 60;
+    if (secs) total += parseInt(secs[1]);
+    return total;
   }
-
-  // Get duration of a specific video index
+  
+  // Fallback to 10 mins (600s) if duration isn't fetched
   function getVideoDuration(index) {
-    if (state.videos && index < state.videos.length) {
-      return state.videos[index].duration;
-    }
-    return 600; // Fallback: 10 minutes per video
+    if (state.videos && index < state.videos.length) return state.videos[index].duration;
+    return 600; 
   }
-
-  // Get total cumulative time required to reach a certain video index
+  
   function getCumulativeTime(videoCount) {
     let t = 0;
-    const max = state.videos && state.videos.length > 0 ? Math.min(videoCount, state.videos.length) : videoCount;
+    const max = Math.max(0, Math.min(videoCount, state.config.totalVideos));
     for (let i = 0; i < max; i++) {
       t += getVideoDuration(i);
     }
     return t;
   }
-
-  // Get total time of the entire playlist
+  
   function getTotalPlaylistTime() {
     return getCumulativeTime(state.config.totalVideos);
   }
-
+  
   function defaultState(){
     return {
       config: { playlistName:'DSA Placement Sheet (Default)', playlistUrl:'', totalVideos: 150, isLive: true },
-      videos: [], // Will store { id, duration } from API
+      videos: [],
+      lastSaved: Date.now(),
       people: [
         { id:'me', name:'You', effort:'me', video:0, seconds:0, isMe:true },
         { id:id(), name:'Rohan', effort:'elite', video:0, seconds:0 },
@@ -305,24 +297,51 @@ Here is your final, mathematically accurate tracker code. Replace your file with
     };
   }
 
+  function formatTimeAgo(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 10) return 'just now';
+    if (s < 60) return `${s}s ago`;
+    return `${Math.floor(s / 60)}m ago`;
+  }
+  
   function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
     
-    // Safety check for old states lacking 'seconds' tracking
-    state.people.forEach(p => { 
-      if(typeof p.seconds !== 'number') {
-        p.seconds = getCumulativeTime(p.video);
-      }
-    });
-
+    // OFFLINE CATCH-UP ENGINE
+    const timeOffline = Date.now() - (state.lastSaved || Date.now());
+    const missedTicks = Math.floor(timeOffline / TICK_MS);
+    const ticksToSimulate = Math.min(missedTicks, 201600); // Cap simulation at 7 days to prevent freezing
+    
+    if (ticksToSimulate > 0 && state.config.isLive) {
+      state.people.forEach(p => {
+        if(p.isMe || p.video >= state.config.totalVideos) return;
+        const pace = PACE[p.effort];
+        // Mathematical expected value simulation
+        const expectedHits = ticksToSimulate * pace.tickChance;
+        p.seconds += expectedHits * pace.watchSec;
+        
+        let targetSec = getCumulativeTime(p.video + 1);
+        while (p.video < state.config.totalVideos && p.seconds >= targetSec) {
+          p.video++;
+          targetSec = getCumulativeTime(p.video + 1);
+        }
+        if (p.video >= state.config.totalVideos) p.seconds = getCumulativeTime(state.config.totalVideos);
+      });
+    }
+  
+    state.lastSaved = Date.now();
     renderAll();
     setInterval(liveTick, TICK_MS);
   }
-
-  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  
+  function saveState(){ 
+    state.lastSaved = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
+  }
+  
   function sortedPeople(){ return [...state.people].sort((a,b)=> b.seconds - a.seconds); }
-
+  
   function renderAll(){
     document.getElementById('playlistName').value = state.config.playlistName;
     document.getElementById('totalVideos').value = state.config.totalVideos;
@@ -335,27 +354,27 @@ Here is your final, mathematically accurate tracker code. Replace your file with
     } else {
       openLink.style.display = 'none';
     }
-
+  
     renderSpotlight();
     renderLadder();
     renderMeCard();
     renderFeed();
     renderRoast();
   }
-
+  
   function renderSpotlight(){
     const wrap = document.getElementById('spotlight');
     const totalVids = state.config.totalVideos || 1;
     const totalTime = getTotalPlaylistTime();
     const top = sortedPeople().slice(0, 5);
-
+  
     wrap.innerHTML = top.map((p, idx)=>{
       const rank = idx+1;
       const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
       const isTyping = typingStates[p.id];
-
+  
       return `<div class="spot-card ${p.isMe?'is-me':''}">
         <div class="spot-top"><span class="spot-rank">#${rank}</span></div>
         <div class="spot-identity">
@@ -380,13 +399,13 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       </div>`;
     }).join('');
   }
-
+  
   function renderLadder(){
     const wrap = document.getElementById('ladder');
     const totalVids = state.config.totalVideos || 1;
     const totalTime = getTotalPlaylistTime();
     const people = sortedPeople();
-
+  
     wrap.innerHTML = people.map((p, idx)=>{
       const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
@@ -414,7 +433,7 @@ Here is your final, mathematically accurate tracker code. Replace your file with
         </div>
       </div>`;
     }).join('');
-
+  
     wrap.querySelectorAll('.del-btn').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         state.people = state.people.filter(p=>p.id !== btn.dataset.id);
@@ -422,21 +441,24 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       });
     });
   }
-
+  
   function renderMeCard(){
     const me = state.people.find(p=>p.isMe);
     document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + state.config.totalVideos + '</span>';
     document.getElementById('meTime').textContent = `${formatTime(me.seconds)} watched`;
     document.getElementById('meVideoInput').value = me.video;
   }
-
+  
   function renderFeed(){
     const wrap = document.getElementById('feed');
-    wrap.innerHTML = state.feed.slice(0,10).map(ev=>{
-      return `<div class="feed-item">▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}</div>`;
+    wrap.innerHTML = state.feed.slice(0,12).map(ev=>{
+      return `<div class="feed-item">
+        ▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}
+        <span class="feed-time">${formatTimeAgo(ev.ts)}</span>
+      </div>`;
     }).join('');
   }
-
+  
   function renderRoast(){
     const me = state.people.find(p=>p.isMe);
     const leader = sortedPeople()[0];
@@ -446,72 +468,86 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       return;
     }
     if (me.seconds === 0) {
-      document.getElementById('roastText').textContent = "0 hours logged. Everyone is passing you. Time to start.";
+      document.getElementById('roastText').textContent = "0 hours logged. The clock started without you. Time to begin.";
       return;
     }
-
+  
     const gapSec = leader.seconds - me.seconds;
     document.getElementById('roastText').textContent = `${leader.name} has watched ${formatTime(gapSec)} more than you. Keep grinding to catch up.`;
   }
-
+  
   function updateMeVideo(newVal){
     const me = state.people.find(p=>p.isMe);
     const clamped = clamp(Math.round(newVal), 0, state.config.totalVideos);
     
-    // Only log if moving forward
     if(clamped > me.video) {
-      state.feed.unshift({ id:id(), name:'You', text:`completed video ${clamped}` });
+      state.feed.unshift({ id:id(), name:'You', text:`completed video ${clamped}`, ts: Date.now() });
     }
     
     me.video = clamped;
-    // Bind exact cumulative time to this exact video index
-    me.seconds = getCumulativeTime(clamped);
+    me.seconds = getCumulativeTime(clamped); // Snaps perfectly to the end of that video
     
     saveState(); renderAll();
   }
-
-  // --- BOT SIMULATION ENGINE ---
+  
+  // --- REALISTIC LIVE SIMULATION ---
   function liveTick(){
     if(!state.config.isLive) return;
     const total = state.config.totalVideos;
+    let uiNeedsUpdate = false;
     
     state.people.forEach(p => {
       if(p.isMe || p.video >= total) return;
       const pace = PACE[p.effort];
       
-      // RNG Roll: Does the bot watch right now?
       if(!typingStates[p.id] && Math.random() < pace.tickChance){
         typingStates[p.id] = true;
-        renderAll(); // Show watching indicator
+        uiNeedsUpdate = true;
         
         setTimeout(() => {
           delete typingStates[p.id];
           if(!state.config.isLive) return;
           
-          // Add accumulated watch time
-          p.seconds += pace.watchSec;
+          p.seconds += pace.watchSec; // Add simulated seconds
           
-          // Check if accumulated time exceeds the requirement for the next video
           let targetSec = getCumulativeTime(p.video + 1);
-          let videoCompleted = false;
-          
           while(p.video < total && p.seconds >= targetSec) {
             p.video++;
-            videoCompleted = true;
-            state.feed.unshift({ id:id(), name:p.name, text:`finished video ${p.video}` });
+            state.feed.unshift({ id:id(), name:p.name, text:`finished video ${p.video}`, ts: Date.now() });
             targetSec = getCumulativeTime(p.video + 1);
           }
           
-          // Cap at max playlist length
           if (p.video >= total) p.seconds = getCumulativeTime(total);
-
+  
           saveState(); renderAll();
-        }, 1500); // Visual delay for indicator
+        }, 1500); // Visual indicator delay
       }
     });
-  }
 
-  // --- YOUTUBE API: DEEP SYNC ---
+    if(uiNeedsUpdate || Math.random() < 0.2) renderAll(); // refresh timestamps
+  }
+  
+  // --- MANUAL CONFIGURATION OVERRIDES ---
+  function updateConfigManually(){
+    const newName = document.getElementById('playlistName').value.trim();
+    const newTotalStr = document.getElementById('totalVideos').value;
+    const newTotal = parseInt(newTotalStr, 10);
+    
+    if(!isNaN(newTotal) && newTotal > 0){
+      state.config.totalVideos = newTotal;
+      // Safeguard: Clamp anyone who exceeds the new total downwards
+      state.people.forEach(p => {
+        p.video = Math.min(p.video, newTotal);
+        p.seconds = Math.min(p.seconds, getCumulativeTime(newTotal));
+      });
+    }
+    
+    state.config.playlistName = newName || state.config.playlistName;
+    document.getElementById('pageTitle').textContent = state.config.playlistName;
+    saveState(); renderAll();
+  }
+  
+  // --- YOUTUBE API: DEEP TIME SYNC ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
     const status = document.getElementById('fetchStatus');
@@ -523,26 +559,24 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       status.textContent = "Invalid link. Ensure it contains ?list=...";
       return;
     }
-
+  
     const playlistId = match[1];
     btn.disabled = true;
     status.className = 'fetch-status load';
     status.textContent = '1/3: Locating Playlist...';
-
+  
     try {
-      // 1. Get Playlist Metadata
       const pRes = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${YOUTUBE_API_KEY}`);
       const pData = await pRes.json();
       
       if(pData.error) throw new Error(pData.error.message);
       if(!pData.items || pData.items.length === 0) throw new Error("Playlist not found or is private.");
-
+  
       const title = pData.items[0].snippet.title;
       const totalCount = pData.items[0].contentDetails.itemCount;
       
       status.textContent = `2/3: Fetching all ${totalCount} videos...`;
-
-      // 2. Fetch all Video IDs inside playlist (Handles pagination for large playlists)
+  
       let allVideoIds = [];
       let nextPageToken = '';
       do {
@@ -553,11 +587,10 @@ Here is your final, mathematically accurate tracker code. Replace your file with
           itemData.items.forEach(i => allVideoIds.push(i.contentDetails.videoId));
         }
         nextPageToken = itemData.nextPageToken;
-      } while(nextPageToken && allVideoIds.length < 500); // hard cap at 500 to prevent infinite loops
-
+      } while(nextPageToken && allVideoIds.length < 500); 
+  
       status.textContent = `3/3: Extracting exact durations for ${allVideoIds.length} videos...`;
-
-      // 3. Fetch exact durations for all those Video IDs (Chunked in groups of 50)
+  
       let newVideosData = [];
       for(let i = 0; i < allVideoIds.length; i += 50){
         const chunk = allVideoIds.slice(i, i + 50).join(',');
@@ -571,22 +604,22 @@ Here is your final, mathematically accurate tracker code. Replace your file with
           });
         }
       }
-
-      // 4. Update the complete state
+  
+      // Reset tracking state entirely for a fresh playlist mapping
       state.videos = newVideosData;
       state.config.totalVideos = newVideosData.length;
       state.config.playlistName = title;
       state.config.playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
-
-      // Re-map everyone's seconds so they perfectly match their current video count on the new timeline
+      
+      // Remap seconds based on the actual new video data
       state.people.forEach(p => {
         p.video = clamp(p.video, 0, newVideosData.length);
         p.seconds = getCumulativeTime(p.video);
       });
-
+  
       const totalTimeStr = formatTime(getTotalPlaylistTime());
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Mapped ${newVideosData.length} videos. Total playlist length is ${totalTimeStr}.`;
+      status.textContent = `Success! Exact progress mapped for ${newVideosData.length} videos (${totalTimeStr}).`;
       
       saveState(); renderAll();
       
@@ -597,10 +630,14 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       btn.disabled = false;
     }
   }
-
-  // --- Wiring ---
+  
+  // --- Event Listeners ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
-
+  
+  // Unlocked manual inputs
+  document.getElementById('playlistName').addEventListener('change', updateConfigManually);
+  document.getElementById('totalVideos').addEventListener('change', updateConfigManually);
+  
   document.getElementById('meMinus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video - 1));
   document.getElementById('mePlus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video + 1));
   document.getElementById('meVideoInput').addEventListener('change', (e)=> updateMeVideo(parseInt(e.target.value,10) || 0));
@@ -613,7 +650,7 @@ Here is your final, mathematically accurate tracker code. Replace your file with
       document.getElementById('newName').value = '';
     }
   });
-
+  
   document.getElementById('pauseBtn').addEventListener('click', ()=>{
     state.config.isLive = !state.config.isLive;
     document.getElementById('liveBadge').classList.toggle('paused', !state.config.isLive);
@@ -621,11 +658,9 @@ Here is your final, mathematically accurate tracker code. Replace your file with
     document.getElementById('pauseBtn').textContent = state.config.isLive ? 'Pause' : 'Resume';
     saveState();
   });
-
+  
   loadState();
 })();
 </script>
 </body>
 </html>
-
-```
