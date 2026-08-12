@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Auto-Sync Tracker</title>
+<title>The Grind | Study Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -41,20 +41,12 @@
   h1{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(30px, 5vw, 42px); letter-spacing:-.01em; margin-top:5px; text-shadow:0 0 30px rgba(185,142,255,0.18); }
 
   .live-cluster{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-  .live-badge{
-    display:flex; align-items:center; gap:6px;
-    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim);
-    background:var(--surface); border:1px solid var(--border); padding:7px 12px 7px 10px; border-radius:100px;
-  }
+  .live-badge{ display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:7px 12px 7px 10px; border-radius:100px; }
   .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulseDot 1.6s infinite; }
   .live-badge.paused .live-dot{ background:var(--dim); animation:none; }
   .day-pill{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 14px; border-radius:100px; white-space:nowrap; }
-  .pause-btn{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim);
-    background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer;
-  }
+  .pause-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; }
   .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
-
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
   /* ---------- Playlist panel ---------- */
@@ -66,15 +58,9 @@
   
   .link-row{ display:flex; gap:8px; margin-bottom:12px; }
   .link-row input{ flex:1; min-width:0; }
-  input, select{
-    background:#0F1120; border:1px solid var(--border); color:var(--text);
-    font-family:'Inter', sans-serif; font-size:13.5px; padding:10px 12px; border-radius:8px; width:100%; transition: border-color 0.2s;
-  }
+  input, select{ background:#0F1120; border:1px solid var(--border); color:var(--text); font-family:'Inter', sans-serif; font-size:13.5px; padding:10px 12px; border-radius:8px; width:100%; transition: border-color 0.2s; }
   input:focus, select:focus{ outline:none; border-color:var(--purple); }
-  .link-row button{
-    background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600;
-    font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s;
-  }
+  .link-row button{ background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s; }
   .link-row button:hover{ filter:brightness(1.1); }
   .link-row button:disabled{ opacity:.5; cursor:default; }
 
@@ -83,37 +69,21 @@
   .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:12px; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
-  .open-link{
-    display:inline-flex; align-items:center; justify-content:center; gap:6px; font-family:'Space Grotesk', sans-serif;
-    font-size:13px; font-weight:600; color:var(--blue); text-decoration:none; background:#0F1120; border:1px solid var(--border);
-    border-radius:8px; padding:0 16px; height:40px; white-space:nowrap; transition: border-color 0.2s;
-  }
+  .open-link{ display:inline-flex; align-items:center; justify-content:center; gap:6px; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; color:var(--blue); text-decoration:none; background:#0F1120; border:1px solid var(--border); border-radius:8px; padding:0 16px; height:40px; white-space:nowrap; transition: border-color 0.2s; }
   .open-link:hover{ border-color:var(--blue); }
 
   /* ---------- Coach banner ---------- */
-  .coach{
-    display:flex; gap:14px; align-items:center;
-    background:linear-gradient(90deg, rgba(255,126,182,0.12), transparent 70%);
-    border:1px solid var(--border); border-left:3px solid var(--pink); border-radius:12px; padding:14px 16px; margin-bottom:26px;
-  }
-  .coach-avatar{
-    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:12px; color:var(--pink);
-    border:1px solid var(--pink); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
+  .coach{ display:flex; gap:14px; align-items:center; background:linear-gradient(90deg, rgba(255,126,182,0.12), transparent 70%); border:1px solid var(--border); border-left:3px solid var(--pink); border-radius:12px; padding:14px 16px; margin-bottom:26px; }
+  .coach-avatar{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:12px; color:var(--pink); border:1px solid var(--pink); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   #roastText{ flex:1; font-size:14px; line-height:1.5; }
 
-  /* ---------- Spotlight (top 5) ---------- */
+  /* ---------- Spotlight & Ladder ---------- */
   .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
   .section-head h2{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; }
-  .section-head span{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); }
-
+  
   .spotlight{ display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:30px; }
   @media (max-width:900px){ .spotlight{ grid-auto-flow:column; grid-auto-columns:minmax(160px,1fr); overflow-x:auto; padding-bottom:6px; } }
-  .spot-card{
-    background:linear-gradient(180deg, var(--surface-2), var(--surface));
-    border:1px solid var(--border); border-radius:14px; padding:14px;
-    position:relative; transition:transform .18s ease, border-color .18s ease;
-  }
+  .spot-card{ background:linear-gradient(180deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px; padding:14px; position:relative; transition:transform .18s ease, border-color .18s ease; }
   .spot-card.is-me{ border-color:rgba(255,209,102,0.4); }
   .spot-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   .spot-rank{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); }
@@ -127,7 +97,6 @@
   .spot-count{ font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; }
   .spot-pct{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); }
 
-  /* ---------- Ladder list ---------- */
   .ladder{ background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:24px; }
   .row{ display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid var(--border); transition:background .3s ease; }
   .row:last-child{ border-bottom:none; }
@@ -145,20 +114,20 @@
   .row-right{ text-align:right; flex-shrink:0; font-family:'IBM Plex Mono', monospace; }
   .row-count{ font-size:13px; }
   .row-pct{ font-size:10.5px; color:var(--dim); margin-top:2px; }
+  .del-btn{ background:none; border:none; color:var(--dim); font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer; margin-left:10px; opacity:0; }
+  .row:hover .del-btn{ opacity:1; }
+  .del-btn:hover{ color:var(--pink); }
 
-  /* ---------- Activity feed ---------- */
+  /* ---------- Feed & Controls ---------- */
   .feed{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:6px 0; margin-bottom:24px; max-height:190px; overflow-y:auto; }
   .feed-item{ display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12.5px; color:var(--dim); border-bottom:1px solid var(--border); animation:feedIn .35s ease; }
   .feed-item b{ color:var(--text); font-weight:600; }
-  .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); }
   @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
-  /* ---------- Bottom controls ---------- */
   .controls{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
   @media (max-width:640px){ .controls{ grid-template-columns:1fr; } }
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
   .card h3{ font-family:'Space Grotesk', sans-serif; font-size:14px; color:var(--dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
-  
   .me-controls{ display:flex; gap:8px; align-items:center; }
   .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:12px; }
   .odometer span{ font-size:14px; color:var(--dim); font-weight:400; }
@@ -177,7 +146,6 @@
     </div>
     <div class="live-cluster">
       <span class="live-badge" id="liveBadge"><span class="live-dot"></span><span id="liveBadgeText">LIVE</span></span>
-      <span class="day-pill" id="dayPill">Day 0</span>
       <button class="pause-btn" id="pauseBtn">Pause</button>
     </div>
   </div>
@@ -186,7 +154,7 @@
     <!-- API Setup Row -->
     <div class="api-row">
       <div style="flex:1;">
-        <label for="apiKey">YouTube API Key (One-time setup)</label>
+        <label for="apiKey">YouTube API Key (Optional Auto-Sync)</label>
         <input id="apiKey" type="password" placeholder="AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks">
       </div>
     </div>
@@ -200,15 +168,15 @@
     <div class="meta-row">
       <div>
         <label for="playlistName">Playlist name</label>
-        <input id="playlistName" type="text" value="DSA Placement Sheet" readonly style="opacity: 0.7;">
+        <input id="playlistName" type="text" value="DSA Placement Sheet">
       </div>
       <div>
         <label for="totalVideos">Total Videos</label>
-        <input id="totalVideos" type="number" value="150" readonly style="opacity: 0.7;">
+        <input id="totalVideos" type="number" value="150" min="1">
       </div>
       <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open Playlist ↗</a>
     </div>
-    <div class="fetch-status" id="fetchStatus">Enter your API key once, then paste any playlist link to instantly sync the exact video count and title.</div>
+    <div class="fetch-status" id="fetchStatus">Enter your API key once to auto-sync, or simply type the total videos manually above.</div>
   </section>
 
   <section class="coach">
@@ -219,7 +187,7 @@
   <div class="section-head"><h2>Top of the ladder</h2></div>
   <div class="spotlight" id="spotlight"></div>
 
-  <div class="section-head"><h2>Full standings</h2><span id="ladderSub"></span></div>
+  <div class="section-head"><h2>Full standings</h2></div>
   <section class="ladder" id="ladder"><div class="empty">Loading…</div></section>
 
   <div class="section-head"><h2>Activity Feed</h2></div>
@@ -253,7 +221,7 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'grind-ladder-api-sync-v1';
+  const STORAGE_KEY = 'grind-ladder-api-sync-v2';
   const TICK_MS = 3500;
   
   const PACE = {
@@ -274,7 +242,7 @@
   function defaultState(){
     return {
       apiKey: '',
-      config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: 150, day: 0, isLive: true },
+      config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: 150, isLive: true },
       people: [
         { id:'me', name:'You', effort:'me', video:0, isMe:true },
         { id:id(), name:'Rohan', effort:'elite', video:38 },
@@ -293,10 +261,7 @@
     setInterval(liveTick, TICK_MS);
   }
 
-  function saveState(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
+  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   function sortedPeople(){ return [...state.people].sort((a,b)=> b.video - a.video); }
 
   function renderAll(){
@@ -304,9 +269,12 @@
     document.getElementById('totalVideos').value = state.config.totalVideos;
     document.getElementById('playlistUrl').value = state.config.playlistUrl || '';
     
+    const openLink = document.getElementById('openLink');
     if(state.config.playlistUrl){
-      document.getElementById('openLink').href = state.config.playlistUrl;
-      document.getElementById('openLink').style.display = 'inline-flex';
+      openLink.href = state.config.playlistUrl;
+      openLink.style.display = 'inline-flex';
+    } else {
+      openLink.style.display = 'none';
     }
 
     renderSpotlight();
@@ -405,7 +373,7 @@
     const me = state.people.find(p=>p.isMe);
     const leader = sortedPeople()[0];
     const gap = leader.video - me.video;
-    let txt = gap <= 0 ? "You're in the lead. Don't slow down." : `${leader.name} is ${gap} videos ahead. Time to catch up.`;
+    let txt = gap <= 0 ? "You're in the lead. Keep it up." : `${leader.name} is ${gap} videos ahead. Time to catch up.`;
     document.getElementById('roastText').textContent = txt;
   }
 
@@ -413,6 +381,24 @@
     const me = state.people.find(p=>p.isMe);
     me.video = clamp(Math.round(newVal), 0, state.config.totalVideos);
     state.feed.unshift({ id:id(), name:'You', text:`completed video ${me.video}` });
+    saveState(); renderAll();
+  }
+
+  // --- Strict Proportional Scaling for Manual Edits ---
+  function updateConfigManually(name, totalStr){
+    const oldTotal = state.config.totalVideos || 150;
+    state.config.playlistName = name.trim() || state.config.playlistName;
+    
+    const newTotal = parseInt(totalStr, 10);
+    if(!isNaN(newTotal) && newTotal > 0 && newTotal !== oldTotal){
+      state.config.totalVideos = newTotal;
+      state.people.forEach(p => {
+        const ratio = oldTotal > 0 ? (p.video / oldTotal) : 0;
+        p.video = clamp(Math.round(ratio * newTotal), 0, newTotal);
+      });
+    }
+    
+    document.getElementById('pageTitle').textContent = state.config.playlistName || 'Ladder';
     saveState(); renderAll();
   }
 
@@ -448,14 +434,14 @@
 
     if(!apiKey) {
       status.className = 'fetch-status err';
-      status.textContent = "Error: You must provide a YouTube API Key first.";
+      status.textContent = "Error: You must provide a YouTube API Key to auto-sync.";
       return;
     }
     
     const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
     if(!match){
       status.className = 'fetch-status err';
-      status.textContent = "Invalid playlist link. Ensure it contains ?list=...";
+      status.textContent = "Invalid link. Ensure it contains ?list=...";
       return;
     }
 
@@ -468,30 +454,25 @@
       const res = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${match[1]}&key=${apiKey}`);
       const data = await res.json();
       
-      if(data.error) throw new Error(data.error.message);
+      if(data.error) {
+        throw new Error(data.error.message.includes("keyInvalid") ? "Invalid API Key" : data.error.message);
+      }
       if(!data.items || data.items.length === 0) throw new Error("Playlist not found or is private.");
 
-      const oldTotal = state.config.totalVideos;
       const newTotal = data.items[0].contentDetails.itemCount;
       const title = data.items[0].snippet.title;
-
-      // Scale all competitors proportionally to the exact new video count
-      state.people.forEach(p => {
-        const ratio = oldTotal > 0 ? (p.video / oldTotal) : 0;
-        p.video = clamp(Math.round(ratio * newTotal), 0, newTotal);
-      });
-
-      state.config.totalVideos = newTotal;
-      state.config.playlistName = title;
+      
+      // Use our manual update logic to scale everyone automatically
+      updateConfigManually(title, newTotal);
       state.config.playlistUrl = `https://www.youtube.com/playlist?list=${match[1]}`;
 
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Exact count found: ${newTotal} videos. Board scaled properly.`;
+      status.textContent = `Success! Board updated to match ${newTotal} videos.`;
       saveState(); renderAll();
       
     } catch(e) {
       status.className = 'fetch-status err';
-      status.textContent = `API Error: ${e.message}`;
+      status.textContent = `API Error: ${e.message} (You can still type the video count manually above!)`;
     } finally {
       btn.disabled = false;
     }
@@ -500,9 +481,15 @@
   // --- Wiring ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
   document.getElementById('apiKey').addEventListener('change', (e) => { state.apiKey = e.target.value; saveState(); });
+  
+  // Re-added Manual Edit Listeners
+  document.getElementById('playlistName').addEventListener('input', (e) => updateConfigManually(e.target.value, document.getElementById('totalVideos').value));
+  document.getElementById('totalVideos').addEventListener('change', (e) => updateConfigManually(document.getElementById('playlistName').value, e.target.value));
+
   document.getElementById('meMinus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video - 1));
   document.getElementById('mePlus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video + 1));
   document.getElementById('meVideoInput').addEventListener('change', (e)=> updateMeVideo(parseInt(e.target.value,10) || 0));
+  
   document.getElementById('addBtn').addEventListener('click', ()=>{
     const name = document.getElementById('newName').value.trim();
     if(name) {
@@ -510,6 +497,14 @@
       saveState(); renderAll();
       document.getElementById('newName').value = '';
     }
+  });
+
+  document.getElementById('pauseBtn').addEventListener('click', ()=>{
+    state.config.isLive = !state.config.isLive;
+    document.getElementById('liveBadge').classList.toggle('paused', !state.config.isLive);
+    document.getElementById('liveBadgeText').textContent = state.config.isLive ? 'LIVE' : 'PAUSED';
+    document.getElementById('pauseBtn').textContent = state.config.isLive ? 'Pause' : 'Resume';
+    saveState();
   });
 
   loadState();
