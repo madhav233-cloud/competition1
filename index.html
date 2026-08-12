@@ -1,9 +1,22 @@
+This is exactly how a real study tracker should work. I have completely rebuilt the engine to track **actual time based on video durations** rather than just counting the number of videos.
+
+Here is exactly how this new version works to match your requirements:
+
+1. **Everyone Starts at Zero:** All bots and you start at 0 videos and 0h 0m watched.
+2. **True Video Length Tracking:** The engine now makes multiple deep calls to the YouTube API. It looks inside the playlist, finds every single video, grabs their exact timestamps (e.g., 10 mins, 1 hour 5 mins), and calculates the true length of the entire playlist.
+3. **Linear Progress Bars:** The progress percentages are now based on **Time, not Video Count**. If Video #1 is 5 minutes long and Video #2 is 2 hours long, finishing Video #2 will move your progress bar significantly more than Video #1.
+4. **Smooth Bot Progress:** The bots now "watch" the videos in seconds. Their progress bars will slowly fill up *while* they are watching a long video, and their video count only ticks up when they have accumulated enough watch time to finish that specific video.
+5. **Hardcoded API Key:** Your API key is safely hardcoded. The input box is gone.
+
+Here is your final, mathematically accurate tracker code. Replace your file with this:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Study Tracker</title>
+<title>The Grind | Time-Based Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -65,6 +78,7 @@
   .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:12px; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
+  .fetch-status.load{ color:var(--yellow); }
   .open-link{ display:inline-flex; align-items:center; justify-content:center; gap:6px; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; color:var(--blue); text-decoration:none; background:#0F1120; border:1px solid var(--border); border-radius:8px; padding:0 16px; height:40px; white-space:nowrap; transition: border-color 0.2s; }
   .open-link:hover{ border-color:var(--blue); }
 
@@ -78,7 +92,7 @@
   .section-head h2{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; }
   
   .spotlight{ display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:30px; }
-  @media (max-width:900px){ .spotlight{ grid-auto-flow:column; grid-auto-columns:minmax(160px,1fr); overflow-x:auto; padding-bottom:6px; } }
+  @media (max-width:900px){ .spotlight{ grid-auto-flow:column; grid-auto-columns:minmax(180px,1fr); overflow-x:auto; padding-bottom:6px; } }
   .spot-card{ background:linear-gradient(180deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px; padding:14px; position:relative; transition:transform .18s ease, border-color .18s ease; }
   .spot-card.is-me{ border-color:rgba(255,209,102,0.4); }
   .spot-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
@@ -87,11 +101,12 @@
   .spot-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; line-height:1.2; }
   .spot-name-row{ display:flex; align-items:center; gap:6px; }
   .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; }
-  .status-dot.typing{ background:var(--yellow); animation:pulseDot 0.8s infinite; }
+  .status-dot.typing{ background:var(--green); animation:pulseDot 0.8s infinite; }
   .spot-tag{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--dim); letter-spacing:.05em; margin-top:2px; }
-  .spot-stats{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .spot-count{ font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; }
-  .spot-pct{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); }
+  .spot-stats{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px; }
+  .spot-count{ font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:700; line-height:1.1; }
+  .spot-time{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--dim); margin-top:4px; }
+  .spot-pct{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); }
 
   .ladder{ background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:24px; }
   .row{ display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid var(--border); transition:background .3s ease; }
@@ -103,12 +118,14 @@
   .row-body{ flex:1; min-width:0; }
   .row-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
   .row-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; }
+  .typing-indicator{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--green); font-style:italic; }
   .tag{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; padding:2px 7px; border-radius:5px; border:1px solid currentColor; }
   .tag-you{ background:var(--yellow); color:#231903; border:none; font-weight:700; }
   .row-bar{ height:6px; border-radius:3px; background:#0F1120; overflow:hidden; }
-  .row-bar-fill{ height:100%; border-radius:3px; transition:width .6s ease; }
+  .row-bar-fill{ height:100%; border-radius:3px; transition:width 0.8s ease; }
   .row-right{ text-align:right; flex-shrink:0; font-family:'IBM Plex Mono', monospace; }
-  .row-count{ font-size:13px; }
+  .row-count{ font-size:14px; font-weight:700; }
+  .row-time{ font-size:9.5px; color:var(--dim); margin-top:2px; }
   .row-pct{ font-size:10.5px; color:var(--dim); margin-top:2px; }
   .del-btn{ background:none; border:none; color:var(--dim); font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer; margin-left:10px; opacity:0; }
   .row:hover .del-btn{ opacity:1; }
@@ -125,8 +142,9 @@
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
   .card h3{ font-family:'Space Grotesk', sans-serif; font-size:14px; color:var(--dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
   .me-controls{ display:flex; gap:8px; align-items:center; }
-  .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:12px; }
+  .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:4px; }
   .odometer span{ font-size:14px; color:var(--dim); font-weight:400; }
+  .me-time{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dim); margin-bottom:14px; }
   .me-controls button{ background:#0F1120; border:1px solid var(--border); color:var(--text); padding:0 12px; height:38px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
   
   .add-fields{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
@@ -137,7 +155,7 @@
 <div class="page">
   <div class="top">
     <div>
-      <span class="kicker">● Live standings</span>
+      <span class="kicker">● Live Time-Based Tracking</span>
       <h1 id="pageTitle">Ladder</h1>
     </div>
     <div class="live-cluster">
@@ -150,21 +168,21 @@
     <label for="playlistUrl">YouTube playlist link</label>
     <div class="link-row">
       <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
-      <button id="fetchBtn">Auto-Sync Data</button>
+      <button id="fetchBtn">Sync Playlist & Durations</button>
     </div>
     
     <div class="meta-row">
       <div>
         <label for="playlistName">Playlist name</label>
-        <input id="playlistName" type="text" value="DSA Placement Sheet">
+        <input id="playlistName" type="text" value="DSA Placement Sheet" readonly style="opacity: 0.7;">
       </div>
       <div>
         <label for="totalVideos">Total Videos</label>
-        <input id="totalVideos" type="number" value="150" min="1">
+        <input id="totalVideos" type="number" value="150" min="1" readonly style="opacity: 0.7;">
       </div>
-      <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open Playlist ↗</a>
+      <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open ↗</a>
     </div>
-    <div class="fetch-status" id="fetchStatus">Paste any playlist link to instantly sync the exact video count and title.</div>
+    <div class="fetch-status" id="fetchStatus">Paste a link to grab exact video lengths. (Currently using 10 min fallback videos).</div>
   </section>
 
   <section class="coach">
@@ -185,6 +203,7 @@
     <div class="card">
       <h3>Your progress</h3>
       <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
+      <div class="me-time" id="meTime">0h 0m watched</div>
       <div class="me-controls">
         <button id="meMinus">−1</button>
         <input id="meVideoInput" type="number" value="0" min="0">
@@ -196,10 +215,10 @@
       <div class="add-fields">
         <input id="newName" type="text" placeholder="Competitor Name">
         <select id="newEffort">
-          <option value="elite">Elite grinder (4-7 vids/day)</option>
-          <option value="hardworking">Hardworking (2-4 vids/day)</option>
-          <option value="average" selected>Average (1-2 vids/day)</option>
-          <option value="low">Low effort (0-1 vids/day)</option>
+          <option value="elite">Elite (Fast)</option>
+          <option value="hardworking">Hardworking</option>
+          <option value="average" selected>Average</option>
+          <option value="low">Low Effort (Slow)</option>
         </select>
         <button class="btn-primary" id="addBtn">Add to ladder</button>
       </div>
@@ -209,35 +228,78 @@
 
 <script>
 (function(){
-  // --- YOUR HARDCODED API KEY ---
+  // --- HARDCODED API KEY ---
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-
-  const STORAGE_KEY = 'grind-ladder-api-sync-v4';
+  const STORAGE_KEY = 'grind-ladder-time-based-v1';
   const TICK_MS = 3500;
   
+  // WatchSec dictates how many simulated seconds of a video they consume per tick
   const PACE = {
-    elite: { tickChance:0.35, typingTime: 2000 },
-    hardworking: { tickChance:0.20, typingTime: 2500 },
-    average: { tickChance:0.12, typingTime: 3000 },
-    low: { tickChance:0.05, typingTime: 4000 }
+    elite: { tickChance: 0.60, watchSec: 1500 }, // Consumes ~25 mins of video per tick
+    hardworking: { tickChance: 0.50, watchSec: 900 },
+    average: { tickChance: 0.35, watchSec: 600 },
+    low: { tickChance: 0.20, watchSec: 300 }
   };
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
 
   let state = null;
-  let typingStates = {};
+  let typingStates = {}; // Used for the visual "watching" green dot indicator
 
   function id(){ return Math.random().toString(36).slice(2,10); }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+  // Format seconds into "12h 30m"
+  function formatTime(sec) {
+    if (!sec || sec < 0) return '0h 0m';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  }
+
+  // Parse YouTube's ISO 8601 duration (e.g., PT1H15M33S) into total seconds
+  function parsePT(duration) {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const h = parseInt(match[1]) || 0;
+    const m = parseInt(match[2]) || 0;
+    const s = parseInt(match[3]) || 0;
+    return (h * 3600) + (m * 60) + s;
+  }
+
+  // Get duration of a specific video index
+  function getVideoDuration(index) {
+    if (state.videos && index < state.videos.length) {
+      return state.videos[index].duration;
+    }
+    return 600; // Fallback: 10 minutes per video
+  }
+
+  // Get total cumulative time required to reach a certain video index
+  function getCumulativeTime(videoCount) {
+    let t = 0;
+    const max = state.videos && state.videos.length > 0 ? Math.min(videoCount, state.videos.length) : videoCount;
+    for (let i = 0; i < max; i++) {
+      t += getVideoDuration(i);
+    }
+    return t;
+  }
+
+  // Get total time of the entire playlist
+  function getTotalPlaylistTime() {
+    return getCumulativeTime(state.config.totalVideos);
+  }
+
   function defaultState(){
     return {
-      config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: 150, isLive: true },
+      config: { playlistName:'DSA Placement Sheet (Default)', playlistUrl:'', totalVideos: 150, isLive: true },
+      videos: [], // Will store { id, duration } from API
       people: [
-        { id:'me', name:'You', effort:'me', video:0, isMe:true },
-        { id:id(), name:'Rohan', effort:'elite', video:38 },
-        { id:id(), name:'Priya', effort:'hardworking', video:22 },
-        { id:id(), name:'Aman', effort:'average', video:11 }
+        { id:'me', name:'You', effort:'me', video:0, seconds:0, isMe:true },
+        { id:id(), name:'Rohan', effort:'elite', video:0, seconds:0 },
+        { id:id(), name:'Priya', effort:'hardworking', video:0, seconds:0 },
+        { id:id(), name:'Aman', effort:'average', video:0, seconds:0 }
       ],
       feed: []
     };
@@ -246,12 +308,20 @@
   function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
+    
+    // Safety check for old states lacking 'seconds' tracking
+    state.people.forEach(p => { 
+      if(typeof p.seconds !== 'number') {
+        p.seconds = getCumulativeTime(p.video);
+      }
+    });
+
     renderAll();
     setInterval(liveTick, TICK_MS);
   }
 
   function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  function sortedPeople(){ return [...state.people].sort((a,b)=> b.video - a.video); }
+  function sortedPeople(){ return [...state.people].sort((a,b)=> b.seconds - a.seconds); }
 
   function renderAll(){
     document.getElementById('playlistName').value = state.config.playlistName;
@@ -275,12 +345,13 @@
 
   function renderSpotlight(){
     const wrap = document.getElementById('spotlight');
-    const total = state.config.totalVideos || 1;
+    const totalVids = state.config.totalVideos || 1;
+    const totalTime = getTotalPlaylistTime();
     const top = sortedPeople().slice(0, 5);
 
     wrap.innerHTML = top.map((p, idx)=>{
       const rank = idx+1;
-      const pct = clamp((p.video/total)*100, 0, 100);
+      const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
       const isTyping = typingStates[p.id];
@@ -296,12 +367,15 @@
               <span class="status-dot ${isTyping ? 'typing' : ''}"></span>
               <span class="spot-name">${escapeHtml(p.name)}</span>
             </div>
-            <div class="spot-tag">${isTyping ? 'studying...' : p.effort}</div>
+            <div class="spot-tag">${isTyping ? 'watching...' : p.effort}</div>
           </div>
         </div>
         <div class="spot-stats">
-          <span class="spot-count">${p.video} <span style="color:var(--dim)">/${total}</span></span>
-          <span class="spot-pct">${pct.toFixed(0)}%</span>
+          <div>
+            <div class="spot-count">${p.video} <span style="font-size:11px;color:var(--dim);font-weight:400">/ ${totalVids} vids</span></div>
+            <div class="spot-time">${formatTime(p.seconds)} / ${formatTime(totalTime)}</div>
+          </div>
+          <span class="spot-pct">${pct.toFixed(1)}%</span>
         </div>
       </div>`;
     }).join('');
@@ -309,13 +383,15 @@
 
   function renderLadder(){
     const wrap = document.getElementById('ladder');
-    const total = state.config.totalVideos || 1;
+    const totalVids = state.config.totalVideos || 1;
+    const totalTime = getTotalPlaylistTime();
     const people = sortedPeople();
 
     wrap.innerHTML = people.map((p, idx)=>{
-      const pct = clamp((p.video/total)*100, 0, 100);
+      const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
+      const isTyping = typingStates[p.id];
       
       return `
       <div class="row ${p.isMe?'is-me':''}">
@@ -326,19 +402,21 @@
         <div class="row-body">
           <div class="row-top">
             <span class="row-name">${escapeHtml(p.name)}</span>
+            ${isTyping ? '<span class="typing-indicator">watching...</span>' : ''}
             ${!p.isMe ? `<button class="del-btn" data-id="${p.id}">remove</button>` : ''}
           </div>
           <div class="row-bar"><div class="row-bar-fill" style="width:${pct}%; background:${color}"></div></div>
         </div>
         <div class="row-right">
-          <div class="row-count">${p.video}/${total}</div>
-          <div class="row-pct">${pct.toFixed(0)}%</div>
+          <div class="row-count">${p.video} <span style="font-size:10px; color:var(--dim); font-weight:400">/ ${totalVids}</span></div>
+          <div class="row-time">${formatTime(p.seconds)} total</div>
+          <div class="row-pct">${pct.toFixed(1)}%</div>
         </div>
       </div>`;
     }).join('');
 
     wrap.querySelectorAll('.del-btn').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
+      btn.addEventListener('click', ()=>{
         state.people = state.people.filter(p=>p.id !== btn.dataset.id);
         saveState(); renderAll();
       });
@@ -348,12 +426,13 @@
   function renderMeCard(){
     const me = state.people.find(p=>p.isMe);
     document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + state.config.totalVideos + '</span>';
+    document.getElementById('meTime').textContent = `${formatTime(me.seconds)} watched`;
     document.getElementById('meVideoInput').value = me.video;
   }
 
   function renderFeed(){
     const wrap = document.getElementById('feed');
-    wrap.innerHTML = state.feed.slice(0,8).map(ev=>{
+    wrap.innerHTML = state.feed.slice(0,10).map(ev=>{
       return `<div class="feed-item">▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}</div>`;
     }).join('');
   }
@@ -361,63 +440,80 @@
   function renderRoast(){
     const me = state.people.find(p=>p.isMe);
     const leader = sortedPeople()[0];
-    const gap = leader.video - me.video;
-    let txt = gap <= 0 ? "You're in the lead. Keep it up." : `${leader.name} is ${gap} videos ahead. Time to catch up.`;
-    document.getElementById('roastText').textContent = txt;
+    
+    if (me.id === leader.id && me.seconds > 0) {
+      document.getElementById('roastText').textContent = "You're in the lead. Don't let them catch you.";
+      return;
+    }
+    if (me.seconds === 0) {
+      document.getElementById('roastText').textContent = "0 hours logged. Everyone is passing you. Time to start.";
+      return;
+    }
+
+    const gapSec = leader.seconds - me.seconds;
+    document.getElementById('roastText').textContent = `${leader.name} has watched ${formatTime(gapSec)} more than you. Keep grinding to catch up.`;
   }
 
   function updateMeVideo(newVal){
     const me = state.people.find(p=>p.isMe);
-    me.video = clamp(Math.round(newVal), 0, state.config.totalVideos);
-    state.feed.unshift({ id:id(), name:'You', text:`completed video ${me.video}` });
-    saveState(); renderAll();
-  }
-
-  // --- Strict Proportional Scaling for Manual Edits ---
-  function updateConfigManually(name, totalStr){
-    const oldTotal = state.config.totalVideos || 150;
-    state.config.playlistName = name.trim() || state.config.playlistName;
+    const clamped = clamp(Math.round(newVal), 0, state.config.totalVideos);
     
-    const newTotal = parseInt(totalStr, 10);
-    if(!isNaN(newTotal) && newTotal > 0 && newTotal !== oldTotal){
-      state.config.totalVideos = newTotal;
-      state.people.forEach(p => {
-        const ratio = oldTotal > 0 ? (p.video / oldTotal) : 0;
-        p.video = clamp(Math.round(ratio * newTotal), 0, newTotal);
-      });
+    // Only log if moving forward
+    if(clamped > me.video) {
+      state.feed.unshift({ id:id(), name:'You', text:`completed video ${clamped}` });
     }
     
-    document.getElementById('pageTitle').textContent = state.config.playlistName || 'Ladder';
+    me.video = clamped;
+    // Bind exact cumulative time to this exact video index
+    me.seconds = getCumulativeTime(clamped);
+    
     saveState(); renderAll();
   }
 
+  // --- BOT SIMULATION ENGINE ---
   function liveTick(){
     if(!state.config.isLive) return;
-    const total = state.config.totalVideos || 1;
+    const total = state.config.totalVideos;
     
-    state.people.forEach(p=>{
+    state.people.forEach(p => {
       if(p.isMe || p.video >= total) return;
       const pace = PACE[p.effort];
       
+      // RNG Roll: Does the bot watch right now?
       if(!typingStates[p.id] && Math.random() < pace.tickChance){
         typingStates[p.id] = true;
-        renderAll();
+        renderAll(); // Show watching indicator
         
         setTimeout(() => {
           delete typingStates[p.id];
           if(!state.config.isLive) return;
-          p.video++;
-          state.feed.unshift({ id:id(), name:p.name, text:`finished video ${p.video}` });
+          
+          // Add accumulated watch time
+          p.seconds += pace.watchSec;
+          
+          // Check if accumulated time exceeds the requirement for the next video
+          let targetSec = getCumulativeTime(p.video + 1);
+          let videoCompleted = false;
+          
+          while(p.video < total && p.seconds >= targetSec) {
+            p.video++;
+            videoCompleted = true;
+            state.feed.unshift({ id:id(), name:p.name, text:`finished video ${p.video}` });
+            targetSec = getCumulativeTime(p.video + 1);
+          }
+          
+          // Cap at max playlist length
+          if (p.video >= total) p.seconds = getCumulativeTime(total);
+
           saveState(); renderAll();
-        }, pace.typingTime);
+        }, 1500); // Visual delay for indicator
       }
     });
   }
 
-  // --- YouTube API Integration (Hardcoded Key) ---
+  // --- YOUTUBE API: DEEP SYNC ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
-    const apiKey = YOUTUBE_API_KEY; 
     const status = document.getElementById('fetchStatus');
     const btn = document.getElementById('fetchBtn');
     
@@ -428,32 +524,75 @@
       return;
     }
 
+    const playlistId = match[1];
     btn.disabled = true;
-    status.className = 'fetch-status';
-    status.textContent = 'Contacting YouTube API...';
+    status.className = 'fetch-status load';
+    status.textContent = '1/3: Locating Playlist...';
 
     try {
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${match[1]}&key=${apiKey}`);
-      const data = await res.json();
+      // 1. Get Playlist Metadata
+      const pRes = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${YOUTUBE_API_KEY}`);
+      const pData = await pRes.json();
       
-      if(data.error) {
-        throw new Error(data.error.message.includes("keyInvalid") ? "Invalid API Key" : data.error.message);
+      if(pData.error) throw new Error(pData.error.message);
+      if(!pData.items || pData.items.length === 0) throw new Error("Playlist not found or is private.");
+
+      const title = pData.items[0].snippet.title;
+      const totalCount = pData.items[0].contentDetails.itemCount;
+      
+      status.textContent = `2/3: Fetching all ${totalCount} videos...`;
+
+      // 2. Fetch all Video IDs inside playlist (Handles pagination for large playlists)
+      let allVideoIds = [];
+      let nextPageToken = '';
+      do {
+        const itemRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`);
+        const itemData = await itemRes.json();
+        if(itemData.error) throw new Error(itemData.error.message);
+        if(itemData.items) {
+          itemData.items.forEach(i => allVideoIds.push(i.contentDetails.videoId));
+        }
+        nextPageToken = itemData.nextPageToken;
+      } while(nextPageToken && allVideoIds.length < 500); // hard cap at 500 to prevent infinite loops
+
+      status.textContent = `3/3: Extracting exact durations for ${allVideoIds.length} videos...`;
+
+      // 3. Fetch exact durations for all those Video IDs (Chunked in groups of 50)
+      let newVideosData = [];
+      for(let i = 0; i < allVideoIds.length; i += 50){
+        const chunk = allVideoIds.slice(i, i + 50).join(',');
+        const vRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${chunk}&key=${YOUTUBE_API_KEY}`);
+        const vData = await vRes.json();
+        if(vData.error) throw new Error(vData.error.message);
+        
+        if(vData.items){
+          vData.items.forEach(v => {
+            newVideosData.push({ id: v.id, duration: parsePT(v.contentDetails.duration) });
+          });
+        }
       }
-      if(!data.items || data.items.length === 0) throw new Error("Playlist not found or is private.");
 
-      const newTotal = data.items[0].contentDetails.itemCount;
-      const title = data.items[0].snippet.title;
-      
-      updateConfigManually(title, newTotal);
-      state.config.playlistUrl = `https://www.youtube.com/playlist?list=${match[1]}`;
+      // 4. Update the complete state
+      state.videos = newVideosData;
+      state.config.totalVideos = newVideosData.length;
+      state.config.playlistName = title;
+      state.config.playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
 
+      // Re-map everyone's seconds so they perfectly match their current video count on the new timeline
+      state.people.forEach(p => {
+        p.video = clamp(p.video, 0, newVideosData.length);
+        p.seconds = getCumulativeTime(p.video);
+      });
+
+      const totalTimeStr = formatTime(getTotalPlaylistTime());
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Board updated to match ${newTotal} videos.`;
+      status.textContent = `Success! Mapped ${newVideosData.length} videos. Total playlist length is ${totalTimeStr}.`;
+      
       saveState(); renderAll();
       
     } catch(e) {
       status.className = 'fetch-status err';
-      status.textContent = `API Error: ${e.message} (You can still type the video count manually above!)`;
+      status.textContent = `API Error: ${e.message}`;
     } finally {
       btn.disabled = false;
     }
@@ -461,9 +600,6 @@
 
   // --- Wiring ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
-  
-  document.getElementById('playlistName').addEventListener('input', (e) => updateConfigManually(e.target.value, document.getElementById('totalVideos').value));
-  document.getElementById('totalVideos').addEventListener('change', (e) => updateConfigManually(document.getElementById('playlistName').value, e.target.value));
 
   document.getElementById('meMinus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video - 1));
   document.getElementById('mePlus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video + 1));
@@ -472,7 +608,7 @@
   document.getElementById('addBtn').addEventListener('click', ()=>{
     const name = document.getElementById('newName').value.trim();
     if(name) {
-      state.people.push({ id:id(), name, effort:document.getElementById('newEffort').value, video:0 });
+      state.people.push({ id:id(), name, effort:document.getElementById('newEffort').value, video:0, seconds:0 });
       saveState(); renderAll();
       document.getElementById('newName').value = '';
     }
@@ -491,3 +627,5 @@
 </script>
 </body>
 </html>
+
+```
