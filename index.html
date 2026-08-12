@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ladder</title>
+<title>The Grind | Auto-Sync Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -55,15 +55,15 @@
   }
   .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
 
-  @keyframes pulseDot{
-    0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); }
-    70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); }
-    100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); }
-  }
+  @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
   /* ---------- Playlist panel ---------- */
   .playlist-panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px; }
   .playlist-panel label{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  
+  .api-row { display: flex; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
+  .api-row input { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  
   .link-row{ display:flex; gap:8px; margin-bottom:12px; }
   .link-row input{ flex:1; min-width:0; }
   input, select{
@@ -80,7 +80,7 @@
 
   .meta-row{ display:grid; grid-template-columns:1fr 110px auto; gap:10px; align-items:end; }
   @media (max-width:560px){ .meta-row{ grid-template-columns:1fr 90px; } .open-link{ grid-column:1 / -1; } }
-  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:8px; }
+  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:12px; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
   .open-link{
@@ -101,18 +101,12 @@
     border:1px solid var(--pink); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   #roastText{ flex:1; font-size:14px; line-height:1.5; }
-  #roastBtn{
-    background:none; border:1px solid var(--pink); color:var(--pink); font-family:'Space Grotesk', sans-serif; font-size:12px;
-    font-weight:600; padding:8px 14px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: background 0.2s;
-  }
-  #roastBtn:hover{ background:rgba(255,126,182,0.14); }
 
-  /* ---------- Section headers ---------- */
+  /* ---------- Spotlight (top 5) ---------- */
   .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
   .section-head h2{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; }
   .section-head span{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); }
 
-  /* ---------- Spotlight (top 5) ---------- */
   .spotlight{ display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:30px; }
   @media (max-width:900px){ .spotlight{ grid-auto-flow:column; grid-auto-columns:minmax(160px,1fr); overflow-x:auto; padding-bottom:6px; } }
   .spot-card{
@@ -120,44 +114,30 @@
     border:1px solid var(--border); border-radius:14px; padding:14px;
     position:relative; transition:transform .18s ease, border-color .18s ease;
   }
-  .spot-card:hover{ transform:translateY(-2px); border-color:var(--border-strong); }
-  .spot-card.rank-1{ border-color:rgba(255,209,102,0.5); box-shadow:0 0 0 1px rgba(255,209,102,0.15), 0 10px 30px -12px rgba(255,209,102,0.25); }
   .spot-card.is-me{ border-color:rgba(255,209,102,0.4); }
   .spot-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   .spot-rank{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); }
-  .spot-card.rank-1 .spot-rank{ color:var(--yellow); }
   .spot-identity{ display:flex; align-items:center; gap:9px; margin-bottom:10px; }
   .spot-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; line-height:1.2; }
   .spot-name-row{ display:flex; align-items:center; gap:6px; }
   .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; }
-  .status-dot.online{ background:var(--green); animation:pulseDot 1.6s infinite; }
   .status-dot.typing{ background:var(--yellow); animation:pulseDot 0.8s infinite; }
   .spot-tag{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--dim); letter-spacing:.05em; margin-top:2px; }
   .spot-stats{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
   .spot-count{ font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; }
   .spot-pct{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); }
-  .grass{ display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 8px); gap:2.5px; margin-bottom:9px; justify-content:start; }
-  .grass-cell{ width:8px; height:8px; border-radius:2px; background:rgba(255,255,255,0.06); }
-  .streak{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--dim); display:flex; align-items:center; gap:4px; }
-  .streak b{ color:var(--text); font-weight:700; }
-  @keyframes flashCard{ 0%{ box-shadow: inset 0 0 0 999px rgba(110,231,183,0.16); } 100%{ box-shadow: inset 0 0 0 999px rgba(110,231,183,0); } }
-  .spot-card.flash{ animation:flashCard 1.1s ease; }
 
   /* ---------- Ladder list ---------- */
   .ladder{ background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:24px; }
   .row{ display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid var(--border); transition:background .3s ease; }
   .row:last-child{ border-bottom:none; }
   .row.is-me{ background:rgba(255,209,102,0.06); }
-  @keyframes flashRow{ 0%{ background:rgba(110,231,183,0.16); } 100%{ background:transparent; } }
-  .row.flash{ animation:flashRow 1.1s ease; }
   .row-rank{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dim); width:20px; flex-shrink:0; }
   .ring{ width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
   .ring-inner{ width:32px; height:32px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:11px; }
-  .ring .status-dot{ position:absolute; bottom:-1px; right:-1px; border:2px solid var(--surface); }
   .row-body{ flex:1; min-width:0; }
   .row-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
   .row-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; }
-  .typing-indicator{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--yellow); font-style:italic; }
   .tag{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; padding:2px 7px; border-radius:5px; border:1px solid currentColor; }
   .tag-you{ background:var(--yellow); color:#231903; border:none; font-weight:700; }
   .row-bar{ height:6px; border-radius:3px; background:#0F1120; overflow:hidden; }
@@ -165,39 +145,27 @@
   .row-right{ text-align:right; flex-shrink:0; font-family:'IBM Plex Mono', monospace; }
   .row-count{ font-size:13px; }
   .row-pct{ font-size:10.5px; color:var(--dim); margin-top:2px; }
-  .del-btn{ background:none; border:none; color:var(--dim); font-family:'IBM Plex Mono', monospace; font-size:11px; cursor:pointer; margin-left:10px; opacity:0; }
-  .row:hover .del-btn{ opacity:1; }
-  .del-btn:hover{ color:var(--pink); }
-  .empty{ padding:34px 16px; text-align:center; color:var(--dim); font-size:13px; }
 
   /* ---------- Activity feed ---------- */
   .feed{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:6px 0; margin-bottom:24px; max-height:190px; overflow-y:auto; }
   .feed-item{ display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12.5px; color:var(--dim); border-bottom:1px solid var(--border); animation:feedIn .35s ease; }
-  .feed-item:last-child{ border-bottom:none; }
-  @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
   .feed-item b{ color:var(--text); font-weight:600; }
-  .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); flex-shrink:0; white-space:nowrap; }
-  .feed-empty{ padding:20px 16px; text-align:center; color:var(--dim); font-size:12.5px; }
+  .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--dim); }
+  @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
   /* ---------- Bottom controls ---------- */
   .controls{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
   @media (max-width:640px){ .controls{ grid-template-columns:1fr; } }
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
   .card h3{ font-family:'Space Grotesk', sans-serif; font-size:14px; color:var(--dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
+  
   .me-controls{ display:flex; gap:8px; align-items:center; }
   .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:12px; }
   .odometer span{ font-size:14px; color:var(--dim); font-weight:400; }
   .me-controls button{ background:#0F1120; border:1px solid var(--border); color:var(--text); padding:0 12px; height:38px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
-  .me-controls button:hover{ border-color:var(--yellow); color:var(--yellow); }
-  .me-controls input{ flex:1; text-align:center; font-family:'IBM Plex Mono', monospace; height:38px; font-size:14px; }
-
+  
   .add-fields{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .add-actions{ display:flex; gap:8px; }
-  .btn-primary{ background:var(--green); color:#062A1E; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:10px 16px; border-radius:8px; cursor:pointer; flex:1; }
-  .btn-primary:hover{ filter:brightness(1.08); }
-  .btn-secondary{ background:none; border:1px solid var(--border); color:var(--dim); font-family:'Space Grotesk', sans-serif; font-size:12px; padding:0 12px; border-radius:8px; cursor:pointer; }
-  .btn-secondary:hover{ border-color:var(--border-strong); color:var(--text); }
-  .footnote{ text-align:center; color:var(--dim); font-size:11px; margin-top:24px; font-family:'IBM Plex Mono', monospace; }
+  .btn-primary{ background:var(--green); color:#062A1E; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:10px 16px; border-radius:8px; cursor:pointer; width:100%; }
 </style>
 </head>
 <body>
@@ -215,39 +183,47 @@
   </div>
 
   <section class="playlist-panel">
+    <!-- API Setup Row -->
+    <div class="api-row">
+      <div style="flex:1;">
+        <label for="apiKey">YouTube API Key (One-time setup)</label>
+        <input id="apiKey" type="password" placeholder="AIzaSyB...">
+      </div>
+    </div>
+
     <label for="playlistUrl">YouTube playlist link</label>
     <div class="link-row">
       <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
-      <button id="fetchBtn">Load Metadata</button>
+      <button id="fetchBtn">Auto-Sync Data</button>
     </div>
+    
     <div class="meta-row">
       <div>
         <label for="playlistName">Playlist name</label>
-        <input id="playlistName" type="text" value="DSA Placement Sheet">
+        <input id="playlistName" type="text" value="DSA Placement Sheet" readonly style="opacity: 0.7;">
       </div>
       <div>
         <label for="totalVideos">Total Videos</label>
-        <input id="totalVideos" type="number" value="150" min="1">
+        <input id="totalVideos" type="number" value="150" readonly style="opacity: 0.7;">
       </div>
       <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open Playlist ↗</a>
     </div>
-    <div class="fetch-status" id="fetchStatus">Paste a link to automatically fetch the title, or set the video count directly.</div>
+    <div class="fetch-status" id="fetchStatus">Enter your API key once, then paste any playlist link to instantly sync the exact video count and title.</div>
   </section>
 
   <section class="coach">
     <div class="coach-avatar">C</div>
     <p id="roastText">Loading the ladder…</p>
-    <button id="roastBtn">Roast me</button>
   </section>
 
-  <div class="section-head"><h2>Top of the ladder</h2><span id="spotlightSub"></span></div>
+  <div class="section-head"><h2>Top of the ladder</h2></div>
   <div class="spotlight" id="spotlight"></div>
 
   <div class="section-head"><h2>Full standings</h2><span id="ladderSub"></span></div>
   <section class="ladder" id="ladder"><div class="empty">Loading…</div></section>
 
-  <div class="section-head"><h2>Activity Feed</h2><span>real time</span></div>
-  <section class="feed" id="feed"><div class="feed-empty">Nothing yet — activity shows up here as people grind.</div></section>
+  <div class="section-head"><h2>Activity Feed</h2></div>
+  <section class="feed" id="feed"></section>
 
   <div class="controls">
     <div class="card">
@@ -264,246 +240,136 @@
       <div class="add-fields">
         <input id="newName" type="text" placeholder="Competitor Name">
         <select id="newEffort">
-          <option value="elite">Elite grinder</option>
-          <option value="hardworking">Hardworking</option>
-          <option value="average" selected>Average</option>
-          <option value="low">Low effort</option>
+          <option value="elite">Elite grinder (4-7 vids/day)</option>
+          <option value="hardworking">Hardworking (2-4 vids/day)</option>
+          <option value="average" selected>Average (1-2 vids/day)</option>
+          <option value="low">Low effort (0-1 vids/day)</option>
         </select>
-      </div>
-      <div class="add-actions">
         <button class="btn-primary" id="addBtn">Add to ladder</button>
-        <button class="btn-secondary" id="simBtn">Skip a day</button>
       </div>
     </div>
   </div>
-  <p class="footnote">Simulated competitors grind live in the background. If you adjust the "Total Videos", competitor stats scale proportionally.</p>
 </div>
 
 <script>
 (function(){
-  const STORAGE_KEY = 'grind-ladder-state-final';
+  const STORAGE_KEY = 'grind-ladder-api-sync-v1';
   const TICK_MS = 3500;
-  const DAY_ROLLOVER_MS = 45000;
-  const ONLINE_WINDOW_MS = 12000;
-  const GRASS_WEEKS = 6;
-
+  
   const PACE = {
-    elite:       { dayMin:4, dayMax:7, tickChance:0.35, typingTime: 2000 },
-    hardworking: { dayMin:2, dayMax:4, tickChance:0.20, typingTime: 2500 },
-    average:     { dayMin:1, dayMax:2, tickChance:0.12, typingTime: 3000 },
-    low:         { dayMin:0, dayMax:1, tickChance:0.05, typingTime: 4000 },
+    elite: { tickChance:0.35, typingTime: 2000 },
+    hardworking: { tickChance:0.20, typingTime: 2500 },
+    average: { tickChance:0.12, typingTime: 3000 },
+    low: { tickChance:0.05, typingTime: 4000 }
   };
-  const EFFORT_LABEL = { elite:'Elite grinder', hardworking:'Hardworking', average:'Average', low:'Low effort' };
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
-  const EFFORT_COLOR_RGB = { elite:'110,231,183', hardworking:'125,211,252', average:'255,209,102', low:'149,152,184', me:'255,209,102' };
 
   let state = null;
-  let tickTimer = null;
-  let dayTimer = null;
   let typingStates = {};
 
   function id(){ return Math.random().toString(36).slice(2,10); }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-  function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  function seedHistory(effort, days, initialTotal){
-    const pace = PACE[effort] || PACE.average;
-    const h = {};
-    let runningTotal = 0;
-    // Work backwards slightly to just give some historical grass data
-    for(let d = -(days-1); d <= 0; d++){
-      const off = Math.random() > (pace.tickChance*5);
-      const val = off ? 0 : randInt(0, Math.max(1,Math.round(pace.dayMax/2)));
-      h[d] = val;
-    }
-    return h;
-  }
-
-  function defaultState(total){
-    const t = total || 150;
+  function defaultState(){
     return {
-      config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: t, day: 0, isLive: true },
+      apiKey: '',
+      config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: 150, day: 0, isLive: true },
       people: [
-        { id:'me', name:'You', effort:'me', video:0, isMe:true, history:{}, lastActive:0 },
-        { id:id(), name:'Rohan', effort:'elite', video:Math.round(t*0.25), history:seedHistory('elite',30, t), lastActive:Date.now()-8000 },
-        { id:id(), name:'Priya', effort:'hardworking', video:Math.round(t*0.15), history:seedHistory('hardworking',30, t), lastActive:Date.now()-40000 },
-        { id:id(), name:'Aman', effort:'average', video:Math.round(t*0.07), history:seedHistory('average',30, t), lastActive:Date.now()-300000 },
-        { id:id(), name:'Vikram', effort:'low', video:Math.round(t*0.02), history:seedHistory('low',30, t), lastActive:Date.now()-900000 },
+        { id:'me', name:'You', effort:'me', video:0, isMe:true },
+        { id:id(), name:'Rohan', effort:'elite', video:38 },
+        { id:id(), name:'Priya', effort:'hardworking', video:22 },
+        { id:id(), name:'Aman', effort:'average', video:11 }
       ],
       feed: []
     };
   }
 
   function loadState(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      state = raw ? JSON.parse(raw) : defaultState(150);
-      if(!state.feed) state.feed = [];
-      state.people.forEach(p=>{ if(!p.history) p.history = {}; if(typeof p.lastActive !== 'number') p.lastActive = 0; });
-    } catch(e){
-      state = defaultState(150);
-    }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? JSON.parse(raw) : defaultState();
+    document.getElementById('apiKey').value = state.apiKey || '';
     renderAll();
-    startTimers();
+    setInterval(liveTick, TICK_MS);
   }
 
   function saveState(){
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
   function sortedPeople(){ return [...state.people].sort((a,b)=> b.video - a.video); }
-  function isOnline(p){ return p.lastActive && (Date.now()-p.lastActive) < ONLINE_WINDOW_MS; }
-  
-  function timeAgo(ts){
-    if(!ts) return '';
-    const s = Math.floor((Date.now()-ts)/1000);
-    if(s < 5) return 'just now';
-    if(s < 60) return s + 's ago';
-    const m = Math.floor(s/60);
-    if(m < 60) return m + 'm ago';
-    const h = Math.floor(m/60);
-    return h + 'h ago';
-  }
 
-  function currentStreak(p){
-    let streak = 0;
-    let d = state.config.day;
-    while((p.history[d]||0) > 0){ streak++; d--; }
-    return streak;
-  }
-
-  function ring(pct, color, initial, extra){
-    return `<div class="ring" style="background:conic-gradient(${color} ${pct}%, rgba(255,255,255,0.08) 0)"><div class="ring-inner">${initial}</div>${extra||''}</div>`;
-  }
-
-  function grassHtml(p, color, rgb){
-    const cells = [];
-    const start = state.config.day - (GRASS_WEEKS*7 - 1);
-    for(let d = start; d <= state.config.day; d++){
-      const c = p.history[d] || 0;
-      let opacity = 0;
-      if(c === 1) opacity = 0.35;
-      else if(c === 2) opacity = 0.65;
-      else if(c >= 3) opacity = 1;
-      const style = opacity > 0 ? `background:rgba(${rgb},${opacity});` : `background:rgba(255,255,255,0.06);`;
-      cells.push(`<div class="grass-cell" style="${style}"></div>`);
-    }
-    return `<div class="grass">${cells.join('')}</div>`;
-  }
-
-  // ---------- Render Logic ----------
   function renderAll(){
     document.getElementById('playlistName').value = state.config.playlistName;
     document.getElementById('totalVideos').value = state.config.totalVideos;
     document.getElementById('playlistUrl').value = state.config.playlistUrl || '';
-    document.getElementById('pageTitle').textContent = state.config.playlistName || 'Ladder';
-
-    const openLink = document.getElementById('openLink');
+    
     if(state.config.playlistUrl){
-      openLink.href = state.config.playlistUrl;
-      openLink.style.display = 'inline-flex';
-    } else {
-      openLink.style.display = 'none';
+      document.getElementById('openLink').href = state.config.playlistUrl;
+      document.getElementById('openLink').style.display = 'inline-flex';
     }
-    updateLiveBadge();
-    renderDynamic();
-  }
 
-  function updateLiveBadge(){
-    const badge = document.getElementById('liveBadge');
-    const text = document.getElementById('liveBadgeText');
-    const btn = document.getElementById('pauseBtn');
-    badge.classList.toggle('paused', !state.config.isLive);
-    text.textContent = state.config.isLive ? 'LIVE' : 'PAUSED';
-    btn.textContent = state.config.isLive ? 'Pause' : 'Resume';
-  }
-
-  function renderDynamic(justUpdatedIds = []){
-    document.getElementById('dayPill').textContent = 'Day ' + state.config.day;
-    renderSpotlight(justUpdatedIds);
-    renderLadder(justUpdatedIds);
+    renderSpotlight();
+    renderLadder();
     renderMeCard();
-    renderRoast();
     renderFeed();
+    renderRoast();
   }
 
-  function renderSpotlight(justUpdatedIds){
+  function renderSpotlight(){
     const wrap = document.getElementById('spotlight');
-    const people = sortedPeople();
     const total = state.config.totalVideos || 1;
-    const top = people.slice(0, 5);
-    document.getElementById('spotlightSub').textContent = 'last ' + (GRASS_WEEKS*7) + ' days';
+    const top = sortedPeople().slice(0, 5);
 
     wrap.innerHTML = top.map((p, idx)=>{
       const rank = idx+1;
       const pct = clamp((p.video/total)*100, 0, 100);
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
-      const rgb = p.isMe ? EFFORT_COLOR_RGB.me : EFFORT_COLOR_RGB[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
       const isTyping = typingStates[p.id];
-      const online = isOnline(p) && !p.isMe;
-      const streak = currentStreak(p);
-      const flash = justUpdatedIds.includes(p.id) ? ' flash' : '';
 
-      return `<div class="spot-card rank-${rank}${p.isMe?' is-me':''}${flash}" data-id="${p.id}">
-        <div class="spot-top">
-          <span class="spot-rank">#${rank}</span>
-          ${p.isMe ? '<span class="tag tag-you">YOU</span>' : ''}
-        </div>
+      return `<div class="spot-card ${p.isMe?'is-me':''}">
+        <div class="spot-top"><span class="spot-rank">#${rank}</span></div>
         <div class="spot-identity">
-          ${ring(pct, color, initial)}
+          <div class="ring" style="background:conic-gradient(${color} ${pct}%, rgba(255,255,255,0.08) 0)">
+            <div class="ring-inner">${initial}</div>
+          </div>
           <div>
             <div class="spot-name-row">
-              <span class="status-dot ${isTyping ? 'typing' : (online ? 'online' : '')}"></span>
+              <span class="status-dot ${isTyping ? 'typing' : ''}"></span>
               <span class="spot-name">${escapeHtml(p.name)}</span>
             </div>
-            <div class="spot-tag">${isTyping ? 'studying...' : (p.isMe ? 'tracking you' : EFFORT_LABEL[p.effort])}</div>
+            <div class="spot-tag">${isTyping ? 'studying...' : p.effort}</div>
           </div>
         </div>
         <div class="spot-stats">
-          <span class="spot-count">${p.video}<span style="color:var(--dim);font-weight:400;">/${total}</span></span>
+          <span class="spot-count">${p.video} <span style="color:var(--dim)">/${total}</span></span>
           <span class="spot-pct">${pct.toFixed(0)}%</span>
         </div>
-        ${grassHtml(p, color, rgb)}
-        <div class="streak">🔥 <b>${streak}</b> day${streak===1?'':'s'} streak</div>
       </div>`;
     }).join('');
   }
 
-  function renderLadder(justUpdatedIds){
+  function renderLadder(){
     const wrap = document.getElementById('ladder');
     const total = state.config.totalVideos || 1;
     const people = sortedPeople();
-    document.getElementById('ladderSub').textContent = people.length + (people.length===1?' runner':' runners');
-
-    if(people.length === 0){
-      wrap.innerHTML = '<div class="empty">No one on the ladder yet.</div>';
-      return;
-    }
 
     wrap.innerHTML = people.map((p, idx)=>{
       const pct = clamp((p.video/total)*100, 0, 100);
-      const rank = idx+1;
-      const isMe = !!p.isMe;
-      const color = isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
-      const label = isMe ? null : EFFORT_LABEL[p.effort];
+      const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
-      const isTyping = typingStates[p.id];
-      const online = isOnline(p) && !isMe;
-      const flash = justUpdatedIds.includes(p.id) ? ' flash' : '';
-      const dot = `<span class="status-dot ${isTyping ? 'typing' : (online ? 'online' : '')}"></span>`;
-
+      
       return `
-      <div class="row ${isMe?'is-me':''}${flash}" data-id="${p.id}">
-        <div class="row-rank">${rank}</div>
-        ${ring(pct, color, initial, dot)}
+      <div class="row ${p.isMe?'is-me':''}">
+        <div class="row-rank">${idx+1}</div>
+        <div class="ring" style="background:conic-gradient(${color} ${pct}%, rgba(255,255,255,0.08) 0)">
+          <div class="ring-inner">${initial}</div>
+        </div>
         <div class="row-body">
           <div class="row-top">
             <span class="row-name">${escapeHtml(p.name)}</span>
-            ${isTyping ? '<span class="typing-indicator">watching video...</span>' : ''}
-            ${isMe ? '<span class="tag tag-you">YOU</span>' : `<span class="tag" style="color:${color}">${label}</span>`}
-            ${!isMe ? `<button class="del-btn" data-id="${p.id}">remove</button>` : ''}
+            ${!p.isMe ? `<button class="del-btn" data-id="${p.id}">remove</button>` : ''}
           </div>
           <div class="row-bar"><div class="row-bar-fill" style="width:${pct}%; background:${color}"></div></div>
         </div>
@@ -516,228 +382,134 @@
 
     wrap.querySelectorAll('.del-btn').forEach(btn=>{
       btn.addEventListener('click', (e)=>{
-        e.stopPropagation();
         state.people = state.people.filter(p=>p.id !== btn.dataset.id);
-        saveState(); renderDynamic();
+        saveState(); renderAll();
       });
     });
   }
 
   function renderMeCard(){
-    const total = state.config.totalVideos || 1;
     const me = state.people.find(p=>p.isMe);
-    document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + total + '</span>';
+    document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + state.config.totalVideos + '</span>';
     document.getElementById('meVideoInput').value = me.video;
   }
 
   function renderFeed(){
     const wrap = document.getElementById('feed');
-    if(!state.feed || state.feed.length === 0){
-      wrap.innerHTML = '<div class="feed-empty">Nothing yet — activity shows up here as people grind.</div>';
-      return;
-    }
-    wrap.innerHTML = state.feed.slice(0,10).map(ev=>{
-      return `<div class="feed-item">▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}<span class="feed-time">${timeAgo(ev.ts)}</span></div>`;
+    wrap.innerHTML = state.feed.slice(0,8).map(ev=>{
+      return `<div class="feed-item">▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}</div>`;
     }).join('');
   }
 
-  // ---------- Coach Roast ----------
   function renderRoast(){
-    const people = sortedPeople();
-    const total = state.config.totalVideos || 1;
     const me = state.people.find(p=>p.isMe);
-    const meIndex = people.findIndex(p=>p.isMe);
-    const leader = people[0];
-    const gap = leader ? (leader.video - me.video) : 0;
-    
-    let text = "";
-    if(me.video === 0) text = "You're at video 0. The clock started without you.";
-    else if(meIndex === 0) text = "You're #1 right now. Don't let them close the gap.";
-    else if(gap <= Math.max(2, Math.round(total*0.05))) text = `${leader.name} is only ${gap} videos ahead. One solid push and you overtake them.`;
-    else if(gap <= Math.round(total*0.25)) text = `You're trailing ${leader.name} by ${gap} videos. Pick up the pace today.`;
-    else text = `${leader.name} is ${gap} videos ahead of you. They're going to finish before you even get halfway at this rate.`;
-    
-    document.getElementById('roastText').textContent = text;
+    const leader = sortedPeople()[0];
+    const gap = leader.video - me.video;
+    let txt = gap <= 0 ? "You're in the lead. Don't slow down." : `${leader.name} is ${gap} videos ahead. Time to catch up.`;
+    document.getElementById('roastText').textContent = txt;
   }
 
-  function pushFeed(name, text){
-    state.feed.unshift({ id:id(), name, text, ts:Date.now() });
-    state.feed = state.feed.slice(0, 15);
+  function updateMeVideo(newVal){
+    const me = state.people.find(p=>p.isMe);
+    me.video = clamp(Math.round(newVal), 0, state.config.totalVideos);
+    state.feed.unshift({ id:id(), name:'You', text:`completed video ${me.video}` });
+    saveState(); renderAll();
   }
 
-  // ---------- Live Simulation ----------
   function liveTick(){
     if(!state.config.isLive) return;
     const total = state.config.totalVideos || 1;
     
     state.people.forEach(p=>{
       if(p.isMe || p.video >= total) return;
-      const pace = PACE[p.effort] || PACE.average;
+      const pace = PACE[p.effort];
       
       if(!typingStates[p.id] && Math.random() < pace.tickChance){
         typingStates[p.id] = true;
-        renderDynamic();
+        renderAll();
         
         setTimeout(() => {
           delete typingStates[p.id];
           if(!state.config.isLive) return;
-          
-          p.video = clamp(p.video + 1, 0, total);
-          p.history[state.config.day] = (p.history[state.config.day]||0) + 1;
-          p.lastActive = Date.now();
-          
-          pushFeed(p.name, 'finished video ' + p.video);
-          saveState();
-          renderDynamic([p.id]);
+          p.video++;
+          state.feed.unshift({ id:id(), name:p.name, text:`finished video ${p.video}` });
+          saveState(); renderAll();
         }, pace.typingTime);
       }
     });
-    
-    // Periodically just refresh the feed timestamps
-    if(Math.random() < 0.3) renderFeed(); 
   }
 
-  function dayRollover(){
-    if(!state.config.isLive) return;
-    state.config.day += 1;
-    saveState(); renderDynamic();
-  }
+  // --- YouTube API Integration ---
+  async function fetchPlaylistInfo(){
+    const url = document.getElementById('playlistUrl').value.trim();
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const status = document.getElementById('fetchStatus');
+    const btn = document.getElementById('fetchBtn');
 
-  function startTimers(){
-    if(tickTimer) clearInterval(tickTimer);
-    if(dayTimer) clearInterval(dayTimer);
-    tickTimer = setInterval(liveTick, TICK_MS);
-    dayTimer = setInterval(dayRollover, DAY_ROLLOVER_MS);
-  }
-
-  // ---------- User Controls ----------
-  function updateMeVideo(newVal){
-    const total = state.config.totalVideos || 1;
-    const me = state.people.find(p=>p.isMe);
-    const clamped = clamp(Math.round(newVal), 0, total);
-    
-    if(clamped > me.video){
-      me.history[state.config.day] = (me.history[state.config.day]||0) + (clamped - me.video);
-      pushFeed('You', `completed video ${clamped}`);
+    if(!apiKey) {
+      status.className = 'fetch-status err';
+      status.textContent = "Error: You must provide a YouTube API Key first.";
+      return;
     }
-    me.video = clamped;
-    me.lastActive = Date.now();
-    saveState(); renderDynamic(['me']);
-  }
-
-  function simulateFullDay(){
-    const total = state.config.totalVideos || 1;
-    const updated = [];
-    state.people.forEach(p=>{
-      if(p.isMe || p.video >= total) return;
-      const pace = PACE[p.effort] || PACE.average;
-      const delta = randInt(pace.dayMin, pace.dayMax);
-      if(delta > 0){
-        p.video = clamp(p.video + delta, 0, total);
-        p.history[state.config.day] = (p.history[state.config.day]||0) + delta;
-        p.lastActive = Date.now();
-        updated.push(p.id);
-        pushFeed(p.name, 'grinded through ' + delta + ' video' + (delta===1?'':'s'));
-      }
-    });
-    state.config.day += 1;
-    saveState(); renderDynamic(updated);
-  }
-
-  function addPerson(name, effort){
-    if(!name.trim()) return;
-    const newP = { id:id(), name:name.trim(), effort, video:0, history:{}, lastActive:Date.now() };
-    state.people.push(newP);
-    pushFeed(newP.name, 'joined the ladder');
-    saveState(); renderDynamic();
-  }
-
-  // --- Strict Proportional Scaling ---
-  function updateConfig(name, totalStr, url){
-    const oldTotal = state.config.totalVideos || 150;
-    state.config.playlistName = name.trim() || state.config.playlistName;
     
-    const newTotal = parseInt(totalStr, 10);
-    if(!isNaN(newTotal) && newTotal > 0 && newTotal !== oldTotal){
-      state.config.totalVideos = newTotal;
-      // Scale all competitors proportionally based on the new total
+    const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    if(!match){
+      status.className = 'fetch-status err';
+      status.textContent = "Invalid playlist link. Ensure it contains ?list=...";
+      return;
+    }
+
+    state.apiKey = apiKey; 
+    btn.disabled = true;
+    status.className = 'fetch-status';
+    status.textContent = 'Contacting YouTube API...';
+
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${match[1]}&key=${apiKey}`);
+      const data = await res.json();
+      
+      if(data.error) throw new Error(data.error.message);
+      if(!data.items || data.items.length === 0) throw new Error("Playlist not found or is private.");
+
+      const oldTotal = state.config.totalVideos;
+      const newTotal = data.items[0].contentDetails.itemCount;
+      const title = data.items[0].snippet.title;
+
+      // Scale all competitors proportionally to the exact new video count
       state.people.forEach(p => {
         const ratio = oldTotal > 0 ? (p.video / oldTotal) : 0;
         p.video = clamp(Math.round(ratio * newTotal), 0, newTotal);
       });
-    }
-    
-    if(typeof url === 'string') state.config.playlistUrl = url.trim();
-    document.getElementById('pageTitle').textContent = state.config.playlistName || 'Ladder';
-    saveState(); renderDynamic();
-  }
 
-  // --- YouTube Fetch ---
-  async function fetchPlaylistInfo(){
-    const urlInput = document.getElementById('playlistUrl');
-    const status = document.getElementById('fetchStatus');
-    const btn = document.getElementById('fetchBtn');
-    const url = urlInput.value.trim();
-    if(!url){ status.textContent = ''; return; }
+      state.config.totalVideos = newTotal;
+      state.config.playlistName = title;
+      state.config.playlistUrl = `https://www.youtube.com/playlist?list=${match[1]}`;
 
-    const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    if(!match){
-      status.className = 'fetch-status err';
-      status.textContent = "That doesn't look like a valid playlist link — it needs a ?list= id.";
-      return;
-    }
-
-    btn.disabled = true;
-    status.className = 'fetch-status';
-    status.textContent = 'Fetching metadata...';
-    const canonicalUrl = 'https://www.youtube.com/playlist?list=' + match[1];
-
-    try{
-      const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(canonicalUrl)}`);
-      const data = await res.json();
-      if(data.title) state.config.playlistName = data.title;
-      state.config.playlistUrl = canonicalUrl;
       status.className = 'fetch-status ok';
-      status.textContent = `Synced "${state.config.playlistName}". Update the video count below.`;
+      status.textContent = `Success! Exact count found: ${newTotal} videos. Board scaled properly.`;
       saveState(); renderAll();
-    } catch(e){
-      state.config.playlistUrl = canonicalUrl;
+      
+    } catch(e) {
       status.className = 'fetch-status err';
-      status.textContent = "Couldn't fetch the title automatically. Name it manually below.";
-      saveState(); renderAll();
+      status.textContent = `API Error: ${e.message}`;
     } finally {
       btn.disabled = false;
     }
   }
 
-  // ---------- Wiring Events ----------
+  // --- Wiring ---
+  document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
+  document.getElementById('apiKey').addEventListener('change', (e) => { state.apiKey = e.target.value; saveState(); });
   document.getElementById('meMinus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video - 1));
   document.getElementById('mePlus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video + 1));
   document.getElementById('meVideoInput').addEventListener('change', (e)=> updateMeVideo(parseInt(e.target.value,10) || 0));
-
   document.getElementById('addBtn').addEventListener('click', ()=>{
-    const input = document.getElementById('newName');
-    addPerson(input.value, document.getElementById('newEffort').value);
-    input.value = '';
-  });
-  document.getElementById('newName').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('addBtn').click(); });
-  document.getElementById('simBtn').addEventListener('click', simulateFullDay);
-
-  const playlistNameInput = document.getElementById('playlistName');
-  const totalVideosInput = document.getElementById('totalVideos');
-  ['change', 'input'].forEach(evt => {
-    playlistNameInput.addEventListener(evt, () => updateConfig(playlistNameInput.value, totalVideosInput.value));
-    totalVideosInput.addEventListener(evt, () => updateConfig(playlistNameInput.value, totalVideosInput.value));
-  });
-
-  document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
-  document.getElementById('playlistUrl').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') fetchPlaylistInfo(); });
-
-  document.getElementById('roastBtn').addEventListener('click', renderRoast);
-  document.getElementById('pauseBtn').addEventListener('click', ()=>{
-    state.config.isLive = !state.config.isLive;
-    updateLiveBadge();
-    saveState();
+    const name = document.getElementById('newName').value.trim();
+    if(name) {
+      state.people.push({ id:id(), name, effort:document.getElementById('newEffort').value, video:0 });
+      saveState(); renderAll();
+      document.getElementById('newName').value = '';
+    }
   });
 
   loadState();
