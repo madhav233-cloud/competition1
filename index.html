@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Real-Time Study Tracker</title>
+<title>The Grind | Auto-Tracking Study Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -48,26 +48,32 @@
   .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
-  /* ---------- Playlist panel ---------- */
-  .playlist-panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px; }
-  .playlist-panel label{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  /* ---------- Top Section Layout ---------- */
+  .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 800px) { .top-grid { grid-template-columns: 1fr; } }
+  
+  /* ---------- Playlist & Player panel ---------- */
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
+  .card h3{ font-family:'Space Grotesk', sans-serif; font-size:14px; color:var(--dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .card label{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
   
   .link-row{ display:flex; gap:8px; margin-bottom:12px; }
   .link-row input{ flex:1; min-width:0; }
   input, select{ background:#0F1120; border:1px solid var(--border); color:var(--text); font-family:'Inter', sans-serif; font-size:13.5px; padding:10px 12px; border-radius:8px; width:100%; transition: border-color 0.2s; }
   input:focus, select:focus{ outline:none; border-color:var(--purple); }
-  .link-row button{ background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s; }
-  .link-row button:hover{ filter:brightness(1.1); }
-  .link-row button:disabled{ opacity:.5; cursor:default; }
+  .btn-primary{ background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s; height: 40px; }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-primary:disabled{ opacity:.5; cursor:default; }
+  .btn-green { background: var(--green); color: #062A1E; width: 100%; }
 
   .meta-row{ display:grid; grid-template-columns:1fr 110px auto; gap:10px; align-items:end; }
-  @media (max-width:560px){ .meta-row{ grid-template-columns:1fr 90px; } .open-link{ grid-column:1 / -1; } }
   .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:12px; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
   .fetch-status.load{ color:var(--yellow); }
-  .open-link{ display:inline-flex; align-items:center; justify-content:center; gap:6px; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; color:var(--blue); text-decoration:none; background:#0F1120; border:1px solid var(--border); border-radius:8px; padding:0 16px; height:40px; white-space:nowrap; transition: border-color 0.2s; }
-  .open-link:hover{ border-color:var(--blue); }
+
+  .video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px; }
+  .video-container iframe { width: 100%; height: 100%; border: none; }
 
   /* ---------- Coach banner ---------- */
   .coach{ display:flex; gap:14px; align-items:center; background:linear-gradient(90deg, rgba(255,126,182,0.12), transparent 70%); border:1px solid var(--border); border-left:3px solid var(--pink); border-radius:12px; padding:14px 16px; margin-bottom:26px; }
@@ -89,6 +95,7 @@
   .spot-name-row{ display:flex; align-items:center; gap:6px; }
   .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; }
   .status-dot.typing{ background:var(--green); animation:pulseDot 0.8s infinite; }
+  .status-dot.you-playing{ background:var(--yellow); animation:pulseDot 0.8s infinite; }
   .spot-tag{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--dim); letter-spacing:.05em; margin-top:2px; }
   .spot-stats{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px; }
   .spot-count{ font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:700; line-height:1.1; }
@@ -118,60 +125,94 @@
   .row:hover .del-btn{ opacity:1; }
   .del-btn:hover{ color:var(--pink); }
 
-  /* ---------- Feed & Controls ---------- */
+  /* ---------- Feed & Manual Controls ---------- */
   .feed{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:6px 0; margin-bottom:24px; max-height:190px; overflow-y:auto; }
   .feed-item{ display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12.5px; color:var(--dim); border-bottom:1px solid var(--border); animation:feedIn .35s ease; }
   .feed-item b{ color:var(--text); font-weight:600; }
   .feed-time{ margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--dim); }
   @keyframes feedIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
-  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
-  @media (max-width:640px){ .controls{ grid-template-columns:1fr; } }
-  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
-  .card h3{ font-family:'Space Grotesk', sans-serif; font-size:14px; color:var(--dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
   .me-controls{ display:flex; gap:8px; align-items:center; }
   .odometer{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px; color:var(--yellow); margin-bottom:4px; }
   .odometer span{ font-size:14px; color:var(--dim); font-weight:400; }
   .me-time{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dim); margin-bottom:14px; }
   .me-controls button{ background:#0F1120; border:1px solid var(--border); color:var(--text); padding:0 12px; height:38px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
-  
-  .add-fields{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .btn-primary{ background:var(--green); color:#062A1E; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:10px 16px; border-radius:8px; cursor:pointer; width:100%; }
+  .add-fields{ display:flex; flex-direction:column; gap:8px; }
 </style>
 </head>
 <body>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
 <div class="page">
   <div class="top">
     <div>
-      <span class="kicker">● Live Time-Based Tracker</span>
+      <span class="kicker">● Auto-Tracking Study Dashboard</span>
       <h1 id="pageTitle">Ladder</h1>
     </div>
     <div class="live-cluster">
       <span class="live-badge" id="liveBadge"><span class="live-dot"></span><span id="liveBadgeText">LIVE</span></span>
-      <button class="pause-btn" id="pauseBtn">Pause</button>
+      <button class="pause-btn" id="pauseBtn">Pause Bots</button>
     </div>
   </div>
 
-  <section class="playlist-panel">
-    <label for="playlistUrl">YouTube playlist link</label>
-    <div class="link-row">
-      <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
-      <button id="fetchBtn">Auto-Sync Durations</button>
-    </div>
-    
-    <div class="meta-row">
-      <div>
-        <label for="playlistName">Playlist name</label>
-        <input id="playlistName" type="text" value="DSA Placement Sheet">
+  <div class="top-grid">
+    <!-- Setup & Embed Card -->
+    <div class="card">
+      <label for="playlistUrl">YouTube playlist link</label>
+      <div class="link-row">
+        <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
+        <button class="btn-primary" id="fetchBtn">Auto-Sync Durations</button>
       </div>
-      <div>
-        <label for="totalVideos">Total Videos</label>
-        <input id="totalVideos" type="number" value="150" min="1">
+      
+      <div class="meta-row">
+        <div>
+          <label for="playlistName">Playlist name</label>
+          <input id="playlistName" type="text" value="DSA Placement Sheet">
+        </div>
+        <div>
+          <label for="totalVideos">Total Videos</label>
+          <input id="totalVideos" type="number" value="150" min="1">
+        </div>
       </div>
-      <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open ↗</a>
+      <div class="fetch-status" id="fetchStatus">Paste a link to grab exact video lengths. Player will load below.</div>
+      
+      <!-- YouTube Embed Area -->
+      <div class="video-container">
+        <div id="ytplayer"></div>
+      </div>
     </div>
-    <div class="fetch-status" id="fetchStatus">Paste a link to grab exact video lengths, or simply manually edit the values above.</div>
-  </section>
+
+    <!-- User Controls & Add Competitor Card -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <h3>Your Progress Tracker</h3>
+        <p style="font-size: 11px; color: var(--dim); margin-bottom: 12px;">Watch the video on the left, and your progress will track automatically. You can also manually adjust it below.</p>
+        <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
+        <div class="me-time" id="meTime">0h 0m watched</div>
+        <div class="me-controls">
+          <button id="meMinus">−1</button>
+          <input id="meVideoInput" type="number" value="0" min="0">
+          <button id="mePlus">+1</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3>Add a competitor</h3>
+        <div class="add-fields">
+          <input id="newName" type="text" placeholder="Competitor Name">
+          <select id="newEffort">
+            <option value="elite">Elite (1.6x Speed)</option>
+            <option value="hardworking">Hardworking (1x Speed)</option>
+            <option value="average" selected>Average (0.5x Speed)</option>
+            <option value="low">Low Effort (0.2x Speed)</option>
+          </select>
+          <button class="btn-primary btn-green" id="addBtn">Add to ladder</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <section class="coach">
     <div class="coach-avatar">C</div>
@@ -186,52 +227,55 @@
 
   <div class="section-head"><h2>Activity Feed</h2></div>
   <section class="feed" id="feed"></section>
-
-  <div class="controls">
-    <div class="card">
-      <h3>Your progress</h3>
-      <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
-      <div class="me-time" id="meTime">0h 0m watched</div>
-      <div class="me-controls">
-        <button id="meMinus">−1</button>
-        <input id="meVideoInput" type="number" value="0" min="0">
-        <button id="mePlus">+1</button>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Add a competitor</h3>
-      <div class="add-fields">
-        <input id="newName" type="text" placeholder="Competitor Name">
-        <select id="newEffort">
-          <option value="elite">Elite (1.6x Speed)</option>
-          <option value="hardworking">Hardworking (1x Speed)</option>
-          <option value="average" selected>Average (0.5x Speed)</option>
-          <option value="low">Low Effort (0.2x Speed)</option>
-        </select>
-        <button class="btn-primary" id="addBtn">Add to ladder</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
+// --- GLOBAL YOUTUBE PLAYER VARS ---
+let ytPlayer;
+let isPlayerReady = false;
+let isUserPlaying = false;
+
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('ytplayer', {
+    height: '100%',
+    width: '100%',
+    videoId: '', // Handled dynamically
+    playerVars: { 'playsinline': 1 },
+    events: {
+      'onReady': () => { isPlayerReady = true; cueLoadedPlaylist(); },
+      'onStateChange': onPlayerStateChange
+    }
+  });
+}
+
+function onPlayerStateChange(event) {
+  isUserPlaying = (event.data === YT.PlayerState.PLAYING);
+}
+
 (function(){
   // --- YOUR HARDCODED API KEY ---
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-time-vfinal';
-  const TICK_MS = 3000; // Engine ticks every 3 seconds
+  const STORAGE_KEY = 'grind-ladder-auto-player-v1';
+  const TICK_MS = 3000; 
   
-  // Real-time study pacing logic
-  // WatchSec = simulated seconds of video consumed per real 3s tick
   const PACE = {
-    elite: { tickChance: 0.8, watchSec: 6 },        // ~1.6x real-time speed
-    hardworking: { tickChance: 0.7, watchSec: 4 },  // ~0.93x real-time speed
-    average: { tickChance: 0.5, watchSec: 3 },      // ~0.50x real-time speed
-    low: { tickChance: 0.2, watchSec: 2 }           // ~0.13x real-time speed
+    elite: { tickChance: 0.8, watchSec: 6 },        
+    hardworking: { tickChance: 0.7, watchSec: 4 },  
+    average: { tickChance: 0.5, watchSec: 3 },      
+    low: { tickChance: 0.2, watchSec: 2 }           
   };
-  
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
   
+  // Expose cueLoadedPlaylist to the global scope for the YT API
+  window.cueLoadedPlaylist = function() {
+    if(isPlayerReady && state.config.playlistId) {
+      ytPlayer.cuePlaylist({
+        list: state.config.playlistId,
+        index: state.people.find(p=>p.isMe).video // Start at their current video
+      });
+    }
+  }
+
   let state = null;
   let typingStates = {};
   
@@ -239,7 +283,6 @@
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   
-  // Format seconds to clean string (e.g., "1h 15m")
   function formatTime(sec) {
     if (!sec || sec <= 0) return '0m';
     const h = Math.floor(sec / 3600);
@@ -249,7 +292,6 @@
     return `<1m`;
   }
   
-  // Parse YouTube ISO 8601 Duration safely
   function parsePT(duration) {
     let total = 0;
     const days = duration.match(/(\d+)D/);
@@ -263,7 +305,6 @@
     return total;
   }
   
-  // Fallback to 10 mins (600s) if duration isn't fetched
   function getVideoDuration(index) {
     if (state.videos && index < state.videos.length) return state.videos[index].duration;
     return 600; 
@@ -272,9 +313,7 @@
   function getCumulativeTime(videoCount) {
     let t = 0;
     const max = Math.max(0, Math.min(videoCount, state.config.totalVideos));
-    for (let i = 0; i < max; i++) {
-      t += getVideoDuration(i);
-    }
+    for (let i = 0; i < max; i++) t += getVideoDuration(i);
     return t;
   }
   
@@ -284,7 +323,7 @@
   
   function defaultState(){
     return {
-      config: { playlistName:'DSA Placement Sheet (Default)', playlistUrl:'', totalVideos: 150, isLive: true },
+      config: { playlistName:'DSA Placement Sheet (Default)', playlistId: '', playlistUrl:'', totalVideos: 150, isLive: true },
       videos: [],
       lastSaved: Date.now(),
       people: [
@@ -308,16 +347,14 @@
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
     
-    // OFFLINE CATCH-UP ENGINE
     const timeOffline = Date.now() - (state.lastSaved || Date.now());
     const missedTicks = Math.floor(timeOffline / TICK_MS);
-    const ticksToSimulate = Math.min(missedTicks, 201600); // Cap simulation at 7 days to prevent freezing
+    const ticksToSimulate = Math.min(missedTicks, 201600); 
     
     if (ticksToSimulate > 0 && state.config.isLive) {
       state.people.forEach(p => {
         if(p.isMe || p.video >= state.config.totalVideos) return;
         const pace = PACE[p.effort];
-        // Mathematical expected value simulation
         const expectedHits = ticksToSimulate * pace.tickChance;
         p.seconds += expectedHits * pace.watchSec;
         
@@ -332,7 +369,10 @@
   
     state.lastSaved = Date.now();
     renderAll();
-    setInterval(liveTick, TICK_MS);
+    
+    // Start interval engines
+    setInterval(liveTick, TICK_MS); 
+    setInterval(trackUserWatchTime, 1000); // Check player every second
   }
   
   function saveState(){ 
@@ -347,14 +387,6 @@
     document.getElementById('totalVideos').value = state.config.totalVideos;
     document.getElementById('playlistUrl').value = state.config.playlistUrl || '';
     
-    const openLink = document.getElementById('openLink');
-    if(state.config.playlistUrl){
-      openLink.href = state.config.playlistUrl;
-      openLink.style.display = 'inline-flex';
-    } else {
-      openLink.style.display = 'none';
-    }
-  
     renderSpotlight();
     renderLadder();
     renderMeCard();
@@ -373,7 +405,7 @@
       const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
-      const isTyping = typingStates[p.id];
+      const isWatching = (p.isMe && isUserPlaying) ? true : typingStates[p.id];
   
       return `<div class="spot-card ${p.isMe?'is-me':''}">
         <div class="spot-top"><span class="spot-rank">#${rank}</span></div>
@@ -383,15 +415,15 @@
           </div>
           <div>
             <div class="spot-name-row">
-              <span class="status-dot ${isTyping ? 'typing' : ''}"></span>
+              <span class="status-dot ${isWatching ? (p.isMe ? 'you-playing' : 'typing') : ''}"></span>
               <span class="spot-name">${escapeHtml(p.name)}</span>
             </div>
-            <div class="spot-tag">${isTyping ? 'watching...' : p.effort}</div>
+            <div class="spot-tag">${isWatching ? 'watching...' : (p.isMe ? 'tracking you' : p.effort)}</div>
           </div>
         </div>
         <div class="spot-stats">
           <div>
-            <div class="spot-count">${p.video} <span style="font-size:11px;color:var(--dim);font-weight:400">/ ${totalVids} vids</span></div>
+            <div class="spot-count">${p.video} <span style="font-size:11px;color:var(--dim);font-weight:400">/ ${totalVids}</span></div>
             <div class="spot-time">${formatTime(p.seconds)} / ${formatTime(totalTime)}</div>
           </div>
           <span class="spot-pct">${pct.toFixed(1)}%</span>
@@ -410,7 +442,7 @@
       const pct = totalTime > 0 ? clamp((p.seconds/totalTime)*100, 0, 100) : 0;
       const color = p.isMe ? EFFORT_COLOR.me : EFFORT_COLOR[p.effort];
       const initial = (p.name||'?').charAt(0).toUpperCase();
-      const isTyping = typingStates[p.id];
+      const isWatching = (p.isMe && isUserPlaying) ? true : typingStates[p.id];
       
       return `
       <div class="row ${p.isMe?'is-me':''}">
@@ -421,7 +453,7 @@
         <div class="row-body">
           <div class="row-top">
             <span class="row-name">${escapeHtml(p.name)}</span>
-            ${isTyping ? '<span class="typing-indicator">watching...</span>' : ''}
+            ${isWatching ? '<span class="typing-indicator">watching...</span>' : ''}
             ${!p.isMe ? `<button class="del-btn" data-id="${p.id}">remove</button>` : ''}
           </div>
           <div class="row-bar"><div class="row-bar-fill" style="width:${pct}%; background:${color}"></div></div>
@@ -485,12 +517,46 @@
     }
     
     me.video = clamped;
-    me.seconds = getCumulativeTime(clamped); // Snaps perfectly to the end of that video
+    me.seconds = getCumulativeTime(clamped); // Snaps perfectly to the start of that video
+    
+    // Automatically skip the YouTube player ahead to match manual input
+    if (isPlayerReady && state.config.playlistId) {
+       ytPlayer.playVideoAt(clamped);
+    }
     
     saveState(); renderAll();
   }
   
-  // --- REALISTIC LIVE SIMULATION ---
+  // --- USER AUTO-TRACKING VIA YOUTUBE API ---
+  function trackUserWatchTime() {
+    if (isPlayerReady && ytPlayer && ytPlayer.getPlayerState) {
+      if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        const currentIndex = ytPlayer.getPlaylistIndex();
+        const currentVideoTime = ytPlayer.getCurrentTime();
+        
+        if (currentIndex !== -1 && currentIndex !== null) {
+          const me = state.people.find(p => p.isMe);
+          
+          // Calculate exact time down to the second
+          const baseTime = getCumulativeTime(currentIndex);
+          const totalNewSecs = baseTime + currentVideoTime;
+          
+          // Log if a new video started organically
+          if (currentIndex > me.video) {
+             state.feed.unshift({ id:id(), name:'You', text:`started video ${currentIndex + 1}`, ts: Date.now() });
+          }
+          
+          me.video = currentIndex;
+          me.seconds = totalNewSecs;
+          
+          saveState();
+          renderAll(); // Updates progress bars smoothly
+        }
+      }
+    }
+  }
+
+  // --- BOT SIMULATION ENGINE ---
   function liveTick(){
     if(!state.config.isLive) return;
     const total = state.config.totalVideos;
@@ -520,14 +586,13 @@
           if (p.video >= total) p.seconds = getCumulativeTime(total);
   
           saveState(); renderAll();
-        }, 1500); // Visual indicator delay
+        }, 1500); 
       }
     });
 
-    if(uiNeedsUpdate || Math.random() < 0.2) renderAll(); // refresh timestamps
+    if(uiNeedsUpdate || Math.random() < 0.2) renderAll(); 
   }
   
-  // --- MANUAL CONFIGURATION OVERRIDES ---
   function updateConfigManually(){
     const newName = document.getElementById('playlistName').value.trim();
     const newTotalStr = document.getElementById('totalVideos').value;
@@ -535,7 +600,6 @@
     
     if(!isNaN(newTotal) && newTotal > 0){
       state.config.totalVideos = newTotal;
-      // Safeguard: Clamp anyone who exceeds the new total downwards
       state.people.forEach(p => {
         p.video = Math.min(p.video, newTotal);
         p.seconds = Math.min(p.seconds, getCumulativeTime(newTotal));
@@ -547,7 +611,7 @@
     saveState(); renderAll();
   }
   
-  // --- YOUTUBE API: DEEP TIME SYNC ---
+  // --- YOUTUBE DATA API: DEEP TIME SYNC ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
     const status = document.getElementById('fetchStatus');
@@ -605,13 +669,12 @@
         }
       }
   
-      // Reset tracking state entirely for a fresh playlist mapping
       state.videos = newVideosData;
       state.config.totalVideos = newVideosData.length;
       state.config.playlistName = title;
+      state.config.playlistId = playlistId;
       state.config.playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
       
-      // Remap seconds based on the actual new video data
       state.people.forEach(p => {
         p.video = clamp(p.video, 0, newVideosData.length);
         p.seconds = getCumulativeTime(p.video);
@@ -619,9 +682,10 @@
   
       const totalTimeStr = formatTime(getTotalPlaylistTime());
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Exact progress mapped for ${newVideosData.length} videos (${totalTimeStr}).`;
+      status.textContent = `Success! Playlist mapped. Press Play to start tracking automatically.`;
       
       saveState(); renderAll();
+      window.cueLoadedPlaylist(); // Load it into the embedded player!
       
     } catch(e) {
       status.className = 'fetch-status err';
@@ -633,8 +697,6 @@
   
   // --- Event Listeners ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
-  
-  // Unlocked manual inputs
   document.getElementById('playlistName').addEventListener('change', updateConfigManually);
   document.getElementById('totalVideos').addEventListener('change', updateConfigManually);
   
@@ -655,7 +717,7 @@
     state.config.isLive = !state.config.isLive;
     document.getElementById('liveBadge').classList.toggle('paused', !state.config.isLive);
     document.getElementById('liveBadgeText').textContent = state.config.isLive ? 'LIVE' : 'PAUSED';
-    document.getElementById('pauseBtn').textContent = state.config.isLive ? 'Pause' : 'Resume';
+    document.getElementById('pauseBtn').textContent = state.config.isLive ? 'Pause Bots' : 'Resume Bots';
     saveState();
   });
   
