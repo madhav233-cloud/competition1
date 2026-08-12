@@ -44,7 +44,6 @@
   .live-badge{ display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:7px 12px 7px 10px; border-radius:100px; }
   .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulseDot 1.6s infinite; }
   .live-badge.paused .live-dot{ background:var(--dim); animation:none; }
-  .day-pill{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 14px; border-radius:100px; white-space:nowrap; }
   .pause-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; }
   .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
@@ -52,9 +51,6 @@
   /* ---------- Playlist panel ---------- */
   .playlist-panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:20px; }
   .playlist-panel label{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
-  
-  .api-row { display: flex; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
-  .api-row input { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
   
   .link-row{ display:flex; gap:8px; margin-bottom:12px; }
   .link-row input{ flex:1; min-width:0; }
@@ -151,14 +147,6 @@
   </div>
 
   <section class="playlist-panel">
-    <!-- API Setup Row -->
-    <div class="api-row">
-      <div style="flex:1;">
-        <label for="apiKey">YouTube API Key (Optional Auto-Sync)</label>
-        <input id="apiKey" type="password" placeholder="AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks">
-      </div>
-    </div>
-
     <label for="playlistUrl">YouTube playlist link</label>
     <div class="link-row">
       <input id="playlistUrl" type="text" placeholder="https://www.youtube.com/playlist?list=...">
@@ -176,7 +164,7 @@
       </div>
       <a class="open-link" id="openLink" href="#" target="_blank" rel="noopener" style="display:none;">Open Playlist ↗</a>
     </div>
-    <div class="fetch-status" id="fetchStatus">Enter your API key once to auto-sync, or simply type the total videos manually above.</div>
+    <div class="fetch-status" id="fetchStatus">Paste any playlist link to instantly sync the exact video count and title.</div>
   </section>
 
   <section class="coach">
@@ -221,7 +209,10 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'grind-ladder-api-sync-v2';
+  // --- YOUR HARDCODED API KEY ---
+  const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
+
+  const STORAGE_KEY = 'grind-ladder-api-sync-v4';
   const TICK_MS = 3500;
   
   const PACE = {
@@ -241,7 +232,6 @@
 
   function defaultState(){
     return {
-      apiKey: '',
       config: { playlistName:'DSA Placement Sheet', playlistUrl:'', totalVideos: 150, isLive: true },
       people: [
         { id:'me', name:'You', effort:'me', video:0, isMe:true },
@@ -256,7 +246,6 @@
   function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
-    document.getElementById('apiKey').value = state.apiKey || '';
     renderAll();
     setInterval(liveTick, TICK_MS);
   }
@@ -425,18 +414,12 @@
     });
   }
 
-  // --- YouTube API Integration ---
+  // --- YouTube API Integration (Hardcoded Key) ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
-    const apiKey = document.getElementById('apiKey').value.trim();
+    const apiKey = YOUTUBE_API_KEY; 
     const status = document.getElementById('fetchStatus');
     const btn = document.getElementById('fetchBtn');
-
-    if(!apiKey) {
-      status.className = 'fetch-status err';
-      status.textContent = "Error: You must provide a YouTube API Key to auto-sync.";
-      return;
-    }
     
     const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
     if(!match){
@@ -445,7 +428,6 @@
       return;
     }
 
-    state.apiKey = apiKey; 
     btn.disabled = true;
     status.className = 'fetch-status';
     status.textContent = 'Contacting YouTube API...';
@@ -462,7 +444,6 @@
       const newTotal = data.items[0].contentDetails.itemCount;
       const title = data.items[0].snippet.title;
       
-      // Use our manual update logic to scale everyone automatically
       updateConfigManually(title, newTotal);
       state.config.playlistUrl = `https://www.youtube.com/playlist?list=${match[1]}`;
 
@@ -480,9 +461,7 @@
 
   // --- Wiring ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
-  document.getElementById('apiKey').addEventListener('change', (e) => { state.apiKey = e.target.value; saveState(); });
   
-  // Re-added Manual Edit Listeners
   document.getElementById('playlistName').addEventListener('input', (e) => updateConfigManually(e.target.value, document.getElementById('totalVideos').value));
   document.getElementById('totalVideos').addEventListener('change', (e) => updateConfigManually(document.getElementById('playlistName').value, e.target.value));
 
