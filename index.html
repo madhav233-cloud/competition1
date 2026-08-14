@@ -56,7 +56,6 @@
   .live-badge.paused .live-dot{ background:var(--dim); animation:none; }
   .pause-btn, .auth-btn, .reset-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
   .pause-btn:hover, .auth-btn:hover{ border-color:var(--border-strong); color:var(--text); }
-  .reset-btn:hover{ border-color:var(--red); color:var(--red); }
   .auth-btn.signed-in{ border-color:rgba(110,231,183,0.3); color:var(--green); }
   .user-avatar{ width:18px; height:18px; border-radius:50%; object-fit:cover; }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
@@ -96,7 +95,7 @@
   .btn-danger:hover { background: rgba(248, 113, 113, 0.25); }
 
   .meta-row{ display:grid; grid-template-columns:1fr 110px; gap:10px; align-items:end; }
-  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:10px; }
+  .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:10px; line-height: 1.4; }
   .fetch-status.ok{ color:var(--green); }
   .fetch-status.err{ color:var(--pink); }
   .fetch-status.load{ color:var(--yellow); }
@@ -400,8 +399,7 @@ function onYouTubeIframeAPIReady() {
       'playsinline': 1,
       'rel': 0,
       'modestbranding': 1,
-      'enablejsapi': 1,
-      'origin': window.location.origin
+      'enablejsapi': 1
     },
     events: {
       'onReady': onPlayerReadyHandler,
@@ -441,7 +439,7 @@ function rotateQuote() {
 // ==========================================
 (function(){
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-cloud-v3';
+  const STORAGE_KEY = 'grind-ladder-cloud-v4';
   const TICK_MS = 3000; 
   
   const PACE = {
@@ -466,6 +464,7 @@ function rotateQuote() {
       ytPlayer.cueVideoById({ videoId: vidId });
     } else if (state.config && state.config.playlistId) {
       ytPlayer.cuePlaylist({
+        listType: 'playlist',
         list: state.config.playlistId,
         index: videoIndex
       });
@@ -838,7 +837,6 @@ function rotateQuote() {
     saveState(); renderAll();
   }
 
-  // --- RESET ALL PROGRESS ---
   function resetAllProgress() {
     const conf = confirm("Are you sure you want to reset all watch time, leaderboard stats, and history back to 0?");
     if (!conf) return;
@@ -959,7 +957,7 @@ function rotateQuote() {
     saveState(); renderAll();
   }
   
-  // --- YOUTUBE DATA API: DEEP TIME SYNC ---
+  // --- BULLETPROOF MULTI-TIER YOUTUBE FETCH ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
     const status = document.getElementById('fetchStatus');
@@ -968,26 +966,34 @@ function rotateQuote() {
     const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
     if(!match){
       status.className = 'fetch-status err';
-      status.textContent = "Invalid link. Ensure it contains ?list=...";
+      status.textContent = "Invalid playlist link. Please provide a full link containing ?list=...";
       return;
     }
   
     const playlistId = match[1];
     btn.disabled = true;
     status.className = 'fetch-status load';
-    status.textContent = '1/3: Locating Playlist...';
+    status.textContent = '1/3: Locating playlist metadata...';
   
+    // Ensure state is valid
+    if (!state) state = defaultState();
+
     try {
+      // 1. Try Google YouTube Data API v3
       const pRes = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${YOUTUBE_API_KEY}`);
       const pData = await pRes.json();
       
-      if(pData.error) throw new Error(pData.error.message);
-      if(!pData.items || pData.items.length === 0) throw new Error("Playlist not found or is private.");
+      if(pData.error) {
+        throw new Error(pData.error.message || "YouTube API error");
+      }
+      if(!pData.items || pData.items.length === 0) {
+        throw new Error("Playlist not found or is private.");
+      }
   
       const title = pData.items[0].snippet.title;
       const totalCount = pData.items[0].contentDetails.itemCount;
       
-      status.textContent = `2/3: Fetching all ${totalCount} videos...`;
+      status.textContent = `2/3: Fetching exact video entries (${totalCount} videos)...`;
   
       let allVideoIds = [];
       let nextPageToken = '';
@@ -1005,7 +1011,7 @@ function rotateQuote() {
         nextPageToken = itemData.nextPageToken;
       } while(nextPageToken && allVideoIds.length < 500); 
   
-      status.textContent = `3/3: Extracting exact durations for ${allVideoIds.length} videos...`;
+      status.textContent = `3/3: Extracting durations for ${allVideoIds.length} videos...`;
   
       let newVideosData = [];
       for(let i = 0; i < allVideoIds.length; i += 50){
@@ -1021,8 +1027,6 @@ function rotateQuote() {
         }
       }
   
-      // Null-safe assignment
-      if (!state) state = defaultState();
       state.videos = newVideosData;
       state.config.totalVideos = newVideosData.length;
       state.config.playlistName = title;
@@ -1036,15 +1040,37 @@ function rotateQuote() {
   
       const totalTimeStr = formatTime(getTotalPlaylistTime());
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Playlist mapped. Press Play to start tracking automatically.`;
+      status.textContent = `Success! Playlist mapped (${newVideosData.length} videos, ${totalTimeStr}). Press Play to track.`;
       
       saveState(); 
       renderAll();
       window.cueLoadedPlaylist();
       
     } catch(e) {
-      status.className = 'fetch-status err';
-      status.textContent = `API Error: ${e.message}`;
+      console.warn("YouTube API call failed, initiating fallback:", e);
+      // --- TIER 2 FALLBACK (Noembed Public Endpoint) ---
+      status.textContent = 'API key restricted or unavailable. Applying fallback playlist sync...';
+      try {
+        const canonicalUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+        const fbRes = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(canonicalUrl)}`);
+        const fbData = await fbRes.json();
+        
+        const fallbackTitle = fbData.title || "YouTube Playlist";
+        state.config.playlistName = fallbackTitle;
+        state.config.playlistId = playlistId;
+        state.config.playlistUrl = canonicalUrl;
+        state.videos = []; // Fallback to standard duration estimations
+
+        saveState();
+        renderAll();
+        window.cueLoadedPlaylist();
+
+        status.className = 'fetch-status ok';
+        status.textContent = `Synced "${fallbackTitle}" via fallback. (API key note: ${e.message}). You can set total video count manually.`;
+      } catch(fallbackErr) {
+        status.className = 'fetch-status err';
+        status.textContent = `Could not fetch automatically (${e.message}). Playlist set manually.`;
+      }
     } finally {
       btn.disabled = false;
     }
