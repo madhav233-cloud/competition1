@@ -6,15 +6,6 @@
 <title>The Grind | Real-Time Study Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Firebase App & Services (Compat CDN) -->
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <style>
   :root{
     --bg:#15172A;
@@ -29,7 +20,6 @@
     --pink:#FF7EB6;
     --yellow:#FFD166;
     --blue:#7DD3FC;
-    --red:#F87171;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
@@ -54,10 +44,8 @@
   .live-badge{ display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:7px 12px 7px 10px; border-radius:100px; }
   .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulseDot 1.6s infinite; }
   .live-badge.paused .live-dot{ background:var(--dim); animation:none; }
-  .pause-btn, .auth-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
-  .pause-btn:hover, .auth-btn:hover{ border-color:var(--border-strong); color:var(--text); }
-  .auth-btn.signed-in{ border-color:rgba(110,231,183,0.3); color:var(--green); }
-  .user-avatar{ width:18px; height:18px; border-radius:50%; object-fit:cover; }
+  .pause-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; }
+  .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
   /* Permanent Quote Banner */
@@ -91,8 +79,6 @@
   .btn-primary{ background:var(--purple); color:#1B0F30; border:none; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; padding:0 18px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: filter 0.2s; height: 40px; }
   .btn-primary:hover{ filter:brightness(1.1); }
   .btn-green { background: var(--green); color: #062A1E; width: 100%; }
-  .btn-danger { background: rgba(248, 113, 113, 0.15); border: 1px solid var(--red); color: var(--red); padding: 10px 14px; border-radius: 8px; font-weight: 600; font-family:'Space Grotesk', sans-serif; cursor: pointer; width: 100%; margin-top: 10px; transition: background 0.2s; }
-  .btn-danger:hover { background: rgba(248, 113, 113, 0.25); }
 
   .meta-row{ display:grid; grid-template-columns:1fr 110px; gap:10px; align-items:end; }
   .fetch-status{ font-family:'IBM Plex Mono', monospace; font-size:11px; margin-top:10px; }
@@ -101,15 +87,14 @@
   .fetch-status.load{ color:var(--yellow); }
 
   .video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px; }
-  .video-container iframe, .video-container #ytplayer { width: 100%; height: 100%; border: none; }
+  .video-container iframe { width: 100%; height: 100%; border: none; }
 
   /* Right Side Panel: Chart & Dynamic Quote */
   .right-panel-stack { display: flex; flex-direction: column; gap: 16px; height: 100%; }
   
   .chart-box { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-  .bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; gap: 8px; padding-top: 16px; }
+  .bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 110px; gap: 8px; padding-top: 10px; }
   .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
-  .bar-val-hint { font-family:'IBM Plex Mono', monospace; font-size: 8.5px; color: var(--dim); min-height: 10px; }
   .bar-fill { width: 100%; background: var(--purple); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s ease; }
   .bar-col.today .bar-fill { background: var(--green); box-shadow: 0 0 10px rgba(110,231,183,0.3); }
   .bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--dim); }
@@ -197,6 +182,9 @@
 </head>
 <body>
 
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
 <div class="page">
   <div class="top">
     <div>
@@ -204,9 +192,6 @@
       <h1 id="pageTitle">Ladder</h1>
     </div>
     <div class="live-cluster">
-      <button class="auth-btn" id="authBtn">
-        <span id="authStatusText">☁️ Sign In with Google</span>
-      </button>
       <span class="live-badge" id="liveBadge"><span class="live-dot"></span><span id="liveBadgeText">LIVE</span></span>
       <button class="pause-btn" id="pauseBtn">Pause Bots</button>
     </div>
@@ -276,7 +261,7 @@
   <div class="bottom-deck">
     <div class="card">
       <h3>Manual Progress Adjustment</h3>
-      <p style="font-size: 11px; color: var(--dim); margin-bottom: 12px;">Watch the embedded video to track automatically, or adjust your completed count below.</p>
+      <p style="font-size: 11px; color: var(--dim); margin-bottom: 12px;">Watch the embedded video to track automatically, or manually adjust your completed count below.</p>
       <div class="odometer" id="meOdometer">0 <span>/ 150</span></div>
       <div class="me-time" id="meTime">0h 0m watched</div>
       <div class="me-controls">
@@ -284,7 +269,6 @@
         <input id="meVideoInput" type="number" value="0" min="0">
         <button id="mePlus">+1</button>
       </div>
-      <button class="btn-danger" id="resetProgressBtn">⚠️ Reset All Progress</button>
     </div>
     
     <div class="card">
@@ -304,90 +288,62 @@
 </div>
 
 <script>
-// ==========================================
-// 1. FIREBASE CONFIGURATION
-// ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCiYHHlKVcAEL0nr_eOxwpkEtKfn6aa94s",
-  authDomain: "study-track-a402c.firebaseapp.com",
-  databaseURL: "https://study-track-a402c-default-rtdb.firebaseio.com",
-  projectId: "study-track-a402c",
-  storageBucket: "study-track-a402c.firebasestorage.app",
-  messagingSenderId: "123362958005",
-  appId: "1:123362958005:web:845a1b02d59add77fffcfc",
-  measurementId: "G-4THTBD4L5C"
-};
-
-let db = null;
-let auth = null;
-let currentUser = null;
-
-try {
-  firebase.initializeApp(firebaseConfig);
-  auth = firebase.auth();
-  db = firebase.firestore();
-} catch(e) {
-  console.warn("Firebase initialization skipped/fallback mode:", e);
-}
-
-// ==========================================
-// 2. MOTIVATIONAL QUOTES
-// ==========================================
+// --- QUOTES LIST ---
 const QUOTES = [
-  "While you're staring at an easy problem, someone two years younger is optimizing a dynamic programming solution for the exact job you want."[cite: 2],
-  "Nobody cares about your potential when your code throws a Time Limit Exceeded error."[cite: 2],
-  "The interviewer isn't going to give you partial credit because you 'almost' remembered the algorithm. Either it passes the test cases or you get filtered out."[cite: 2],
-  "Every time you look at the solution after 5 minutes of trying, you confirm to yourself that you'd rather copy than think."[cite: 2],
-  "Your dream company's compensation package isn't going to a hard worker; it's going to the person who actually solved the problem."[cite: 2],
-  "You are one rejected interview away from wishing you had spent less time making excuses and more time writing code."[cite: 2],
-  "Watching a 40-minute tutorial on two-pointers isn't work. It's high-effort procrastination. Open the editor and suffer through it."[cite: 2],
-  "If your brain doesn't hurt, you aren't learning a pattern; you're just typing out things you already know."[cite: 2],
-  "Comfort is comfortable right up until the rejection email lands in your inbox."[cite: 2],
-  "You don't need another 'roadmap' or 'study plan.' You need to solve the problem sitting in front of you."[cite: 2],
-  "Hope is not a space complexity strategy. Either you optimized it or you failed."[cite: 2],
-  "Every day you skip practicing, the bar to pass the technical round gets higher, and your skills stay the same."[cite: 2],
-  "The company paying top tier doesn't care that you had a bad day. They care that your code runs in O(N log N) time."[cite: 2],
-  "Stop treating LeetCode like an optional hobby if you want a career that isn't optional."[cite: 2],
-  "You can either suffer through the discomfort of being stuck on a problem now, or suffer the embarrassment of freezing in a live interview."[cite: 2],
-  "Someone with worse talent than you is going to get hired over you purely because they had the discipline to grind 300 problems."[cite: 2],
-  "The interviewer doesn't care how many projects you built if you can't traverse a graph without bugging out."[cite: 2],
-  "If you quit every time a problem requires deep thinking, you've already set the ceiling for your own career."[cite: 2],
-  "Dry-running code on paper feels slow until you realize failing three interviews in a row takes months."[cite: 2],
-  "You aren't tired; you're just unaccustomed to brain strain. Sit down and fix the edge cases."[cite: 2],
-  "Your resume gets you past the ATS; your DSA proficiency gets you the offer. Guess which part you're ignoring?"[cite: 2],
-  "Copying the top voted Python solution on LeetCode doesn't make you smart—it makes you an expensive copy-paste engine."[cite: 2],
-  "The rejection email won't say 'Great try!' It will just say 'We've moved forward with other candidates.'"[cite: 2],
-  "You don't get to complain about the market being tough when you can't even implement sliding window without looking up the template."[cite: 2],
-  "Every missed test case is a reminder that sloppy logic in practice becomes a failed interview in reality."[cite: 2],
-  "The candidate interviewing right after you spent their weekend practicing graph algorithms while you made excuses."[cite: 2],
-  "Nobody is going to hand you a high-paying software engineering role out of pity."[cite: 2],
-  "If you can't handle a Medium problem in a quiet room, you will collapse under the pressure of a live camera and an interviewer waiting."[cite: 2],
-  "Your lack of consistency today is building the rejection stack of tomorrow."[cite: 2],
-  "Stop organizing your notes. Stop tweaking your code editor theme. Write the code."[cite: 2],
-  "A brute-force solution is just a fancy way of telling the interviewer you didn't think hard enough."[cite: 2],
-  "If learning data structures was easy, everyone would be earning senior-level salaries."[cite: 2],
-  "You don't get burn-out from thinking hard for one hour; you get fatigue from avoiding the work all day."[cite: 2],
-  "Every time you open social media mid-problem, you prove your attention span isn't built for hard technical work."[cite: 2],
-  "The algorithm doesn't care about your feelings, and neither does the compiler."[cite: 2],
-  "You can blame the 'broken interview process' all you want, but the people getting hired are the ones who mastered it anyway."[cite: 2],
-  "If you need a hint for every problem, you aren't solving problems—you're just reading dynamic answers."[cite: 2],
-  "High compensation demands high technical competency. You haven't paid the price yet."[cite: 2],
-  "Edge cases are where weak developers get exposed. Handle the null pointers or get left behind."[cite: 2],
-  "Wishful thinking doesn't reduce O(N^2) to O(N)."[cite: 2],
-  "You are competing against thousands of people who want the exact same seat. What did you do today that actually separated you from them?"[cite: 2],
-  "Memorizing solutions is fake competence. The second they twist the problem statement, you're dead in the water."[cite: 2],
-  "Stop taking breaks every time you hit a minor bug. Debugging is the actual job."[cite: 2],
-  "The difference between an offer letter and a rejection letter is often just three weeks of disciplined grinding."[cite: 2],
-  "You can spend your time complaining about LeetCode or you can spend your time beating it."[cite: 2],
-  "If you can't explain your space complexity in 10 seconds, you don't understand your own code."[cite: 2],
-  "The hard problems aren't impossible; you're just giving up the moment your initial idea fails."[cite: 2],
-  "Your competition isn't sleeping, and they certainly aren't skipping their daily practice problems."[cite: 2],
-  "You can be comfortable now, or comfortable for the rest of your career. You don't get both."[cite: 2],
-  "Close the browser tab with the answer, reset the workspace, and solve it yourself from scratch."[cite: 2]
+  "While you're staring at an easy problem, someone two years younger is optimizing a dynamic programming solution for the exact job you want.",
+  "Nobody cares about your potential when your code throws a Time Limit Exceeded error.",
+  "The interviewer isn't going to give you partial credit because you 'almost' remembered the algorithm. Either it passes the test cases or you get filtered out.",
+  "Every time you look at the solution after 5 minutes of trying, you confirm to yourself that you'd rather copy than think.",
+  "Your dream company's compensation package isn't going to a hard worker; it's going to the person who actually solved the problem.",
+  "You are one rejected interview away from wishing you had spent less time making excuses and more time writing code.",
+  "Watching a 40-minute tutorial on two-pointers isn't work. It's high-effort procrastination. Open the editor and suffer through it.",
+  "If your brain doesn't hurt, you aren't learning a pattern; you're just typing out things you already know.",
+  "Comfort is comfortable right up until the rejection email lands in your inbox.",
+  "You don't need another 'roadmap' or 'study plan.' You need to solve the problem sitting in front of you.",
+  "Hope is not a space complexity strategy. Either you optimized it or you failed.",
+  "Every day you skip practicing, the bar to pass the technical round gets higher, and your skills stay the same.",
+  "The company paying top tier doesn't care that you had a bad day. They care that your code runs in O(N log N) time.",
+  "Stop treating LeetCode like an optional hobby if you want a career that isn't optional.",
+  "You can either suffer through the discomfort of being stuck on a problem now, or suffer the embarrassment of freezing in a live interview.",
+  "Someone with worse talent than you is going to get hired over you purely because they had the discipline to grind 300 problems.",
+  "The interviewer doesn't care how many projects you built if you can't traverse a graph without bugging out.",
+  "If you quit every time a problem requires deep thinking, you've already set the ceiling for your own career.",
+  "Dry-running code on paper feels slow until you realize failing three interviews in a row takes months.",
+  "You aren't tired; you're just unaccustomed to brain strain. Sit down and fix the edge cases.",
+  "Your resume gets you past the ATS; your DSA proficiency gets you the offer. Guess which part you're ignoring?",
+  "Copying the top voted Python solution on LeetCode doesn't make you smart—it makes you an expensive copy-paste engine.",
+  "The rejection email won't say 'Great try!' It will just say 'We've moved forward with other candidates.'",
+  "You don't get to complain about the market being tough when you can't even implement sliding window without looking up the template.",
+  "Every missed test case is a reminder that sloppy logic in practice becomes a failed interview in reality.",
+  "The candidate interviewing right after you spent their weekend practicing graph algorithms while you made excuses.",
+  "Nobody is going to hand you a high-paying software engineering role out of pity.",
+  "If you can't handle a Medium problem in a quiet room, you will collapse under the pressure of a live camera and an interviewer waiting.",
+  "Your lack of consistency today is building the rejection stack of tomorrow.",
+  "Stop organizing your notes. Stop tweaking your code editor theme. Write the code.",
+  "A brute-force solution is just a fancy way of telling the interviewer you didn't think hard enough.",
+  "If learning data structures was easy, everyone would be earning senior-level salaries.",
+  "You don't get burn-out from thinking hard for one hour; you get fatigue from avoiding the work all day.",
+  "Every time you open social media mid-problem, you prove your attention span isn't built for hard technical work.",
+  "The algorithm doesn't care about your feelings, and neither does the compiler.",
+  "You can blame the 'broken interview process' all you want, but the people getting hired are the ones who mastered it anyway.",
+  "If you need a hint for every problem, you aren't solving problems—you're just reading dynamic answers.",
+  "High compensation demands high technical competency. You haven't paid the price yet.",
+  "Edge cases are where weak developers get exposed. Handle the null pointers or get left behind.",
+  "Wishful thinking doesn't reduce O(N^2) to O(N).",
+  "You are competing against thousands of people who want the exact same seat. What did you do today that actually separated you from them?",
+  "Memorizing solutions is fake competence. The second they twist the problem statement, you're dead in the water.",
+  "Stop taking breaks every time you hit a minor bug. Debugging is the actual job.",
+  "The difference between an offer letter and a rejection letter is often just three weeks of disciplined grinding.",
+  "You can spend your time complaining about LeetCode or you can spend your time beating it.",
+  "If you can't explain your space complexity in 10 seconds, you don't understand your own code.",
+  "The hard problems aren't impossible; you're just giving up the moment your initial idea fails.",
+  "Your competition isn't sleeping, and they certainly aren't skipping their daily practice problems.",
+  "You can be comfortable now, or comfortable for the rest of your career. You don't get both.",
+  "Close the browser tab with the answer, reset the workspace, and solve it yourself from scratch."
 ];
 
 // --- GLOBAL YOUTUBE PLAYER VARS ---
-let ytPlayer = null;
+let ytPlayer;
 let isPlayerReady = false;
 let isUserPlaying = false;
 
@@ -396,12 +352,7 @@ function onYouTubeIframeAPIReady() {
     height: '100%',
     width: '100%',
     videoId: '',
-    playerVars: {
-      'playsinline': 1,
-      'rel': 0,
-      'modestbranding': 1,
-      'enablejsapi': 1
-    },
+    playerVars: { 'playsinline': 1 },
     events: {
       'onReady': () => { isPlayerReady = true; cueLoadedPlaylist(); },
       'onStateChange': onPlayerStateChange
@@ -412,6 +363,8 @@ function onYouTubeIframeAPIReady() {
 function onPlayerStateChange(event) {
   const prevState = isUserPlaying;
   isUserPlaying = (event.data === YT.PlayerState.PLAYING);
+  
+  // Trigger quote when user stops or pauses video
   if (prevState && !isUserPlaying) {
     rotateQuote();
   }
@@ -428,12 +381,9 @@ function rotateQuote() {
   }
 }
 
-// ==========================================
-// 3. APPLICATION LOGIC
-// ==========================================
 (function(){
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-auto-player-v3';
+  const STORAGE_KEY = 'grind-ladder-auto-player-v2';
   const TICK_MS = 3000; 
   
   const PACE = {
@@ -444,27 +394,18 @@ function rotateQuote() {
   };
   const EFFORT_COLOR = { elite:'var(--green)', hardworking:'var(--blue)', average:'var(--yellow)', low:'var(--dim)', me:'var(--yellow)' };
   
+  window.cueLoadedPlaylist = function() {
+    if(isPlayerReady && state.config.playlistId) {
+      ytPlayer.cuePlaylist({
+        list: state.config.playlistId,
+        index: state.people.find(p=>p.isMe).video
+      });
+    }
+  }
+
   let state = null;
   let typingStates = {};
-  let saveDebounceTimer = null;
-
-  window.cueLoadedPlaylist = function() {
-    if (!isPlayerReady || !ytPlayer || !state) return;
-    const me = state.people ? state.people.find(p => p.isMe) : null;
-    const videoIndex = me ? me.video : 0;
-
-    try {
-      if (state.videos && state.videos.length > 0 && state.videos[videoIndex]) {
-        ytPlayer.cueVideoById(state.videos[videoIndex].id);
-      } else if (state.config && state.config.playlistId) {
-        ytPlayer.cuePlaylist({
-          list: state.config.playlistId,
-          index: videoIndex
-        });
-      }
-    } catch(e) {}
-  };
-
+  
   function id(){ return Math.random().toString(36).slice(2,10); }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -488,35 +429,31 @@ function rotateQuote() {
     if (hours) total += parseInt(hours[1]) * 3600;
     if (mins) total += parseInt(mins[1]) * 60;
     if (secs) total += parseInt(secs[1]);
-    return total || 600;
+    return total;
   }
   
   function getVideoDuration(index) {
-    if (state && state.videos && index < state.videos.length && state.videos[index]) {
-      return state.videos[index].duration || 600;
-    }
+    if (state.videos && index < state.videos.length) return state.videos[index].duration;
     return 600; 
   }
   
   function getCumulativeTime(videoCount) {
     let t = 0;
-    const total = (state && state.config) ? state.config.totalVideos : 150;
-    const max = Math.max(0, Math.min(videoCount, total));
+    const max = Math.max(0, Math.min(videoCount, state.config.totalVideos));
     for (let i = 0; i < max; i++) t += getVideoDuration(i);
     return t;
   }
   
   function getTotalPlaylistTime() {
-    const total = (state && state.config) ? state.config.totalVideos : 150;
-    return getCumulativeTime(total);
+    return getCumulativeTime(state.config.totalVideos);
   }
   
   function defaultState(){
     return {
-      config: { playlistName:'DSA Placement Sheet', playlistId: '', playlistUrl:'', totalVideos: 150, isLive: true },
+      config: { playlistName:'DSA Placement Sheet (Default)', playlistId: '', playlistUrl:'', totalVideos: 150, isLive: true },
       videos: [],
       lastSaved: Date.now(),
-      dailyHistory: {},
+      dailyHistory: {}, // { "YYYY-MM-DD": seconds }
       people: [
         { id:'me', name:'You', effort:'me', video:0, seconds:0, isMe:true },
         { id:id(), name:'Rohan', effort:'elite', video:0, seconds:0 },
@@ -527,12 +464,8 @@ function rotateQuote() {
     };
   }
 
-  function getLocalDateKey(dateObj) {
-    const d = dateObj || new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  function getTodayKey() {
+    return new Date().toISOString().split('T')[0];
   }
 
   function formatTimeAgo(ts) {
@@ -542,36 +475,16 @@ function rotateQuote() {
     return `${Math.floor(s / 60)}m ago`;
   }
   
-  // --- STATE LOAD & RECOVERY ---
-  async function loadState(){
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      state = raw ? JSON.parse(raw) : defaultState();
-    } catch(e) {
-      state = defaultState();
-    }
-    if (!state) state = defaultState();
+  function loadState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? JSON.parse(raw) : defaultState();
     if (!state.dailyHistory) state.dailyHistory = {};
-    if (!state.videos) state.videos = [];
-    if (!state.people || state.people.length === 0) state.people = defaultState().people;
-
-    // Cloud firestore async recovery
-    if (db && currentUser) {
-      db.collection('users').doc(currentUser.uid).get().then(doc => {
-        if (doc.exists) {
-          state = { ...defaultState(), ...doc.data() };
-          renderAll();
-          window.cueLoadedPlaylist();
-        }
-      }).catch(err => console.warn(err));
-    }
     
-    // Offline simulation calculation
     const timeOffline = Date.now() - (state.lastSaved || Date.now());
     const missedTicks = Math.floor(timeOffline / TICK_MS);
     const ticksToSimulate = Math.min(missedTicks, 201600); 
     
-    if (ticksToSimulate > 0 && state.config && state.config.isLive) {
+    if (ticksToSimulate > 0 && state.config.isLive) {
       state.people.forEach(p => {
         if(p.isMe || p.video >= state.config.totalVideos) return;
         const pace = PACE[p.effort];
@@ -590,35 +503,23 @@ function rotateQuote() {
     state.lastSaved = Date.now();
     rotateQuote();
     renderAll();
-    window.cueLoadedPlaylist();
+    
+    // Intervals
+    setInterval(liveTick, TICK_MS); 
+    setInterval(trackUserWatchTime, 1000);
+    setInterval(rotateQuote, 15 * 60 * 1000); // 15 Minute Quote Rotation
   }
   
   function saveState(){ 
-    if (!state) return;
     state.lastSaved = Date.now();
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
-    } catch(e){}
-
-    if (db && currentUser) {
-      if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
-      saveDebounceTimer = setTimeout(async () => {
-        try {
-          await db.collection('users').doc(currentUser.uid).set(state);
-        } catch(e) {}
-      }, 1200);
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
   }
   
-  function sortedPeople(){ 
-    if (!state || !state.people) return [];
-    return [...state.people].sort((a,b)=> (b.seconds || 0) - (a.seconds || 0)); 
-  }
+  function sortedPeople(){ return [...state.people].sort((a,b)=> b.seconds - a.seconds); }
   
   function renderAll(){
-    if (!state) return;
-    document.getElementById('playlistName').value = state.config.playlistName || '';
-    document.getElementById('totalVideos').value = state.config.totalVideos || 150;
+    document.getElementById('playlistName').value = state.config.playlistName;
+    document.getElementById('totalVideos').value = state.config.totalVideos;
     document.getElementById('playlistUrl').value = state.config.playlistUrl || '';
     
     renderSpotlight();
@@ -627,62 +528,31 @@ function rotateQuote() {
     renderFeed();
     renderRoast();
     renderChart();
-    renderAuthUI();
   }
 
-  function renderAuthUI() {
-    const authBtn = document.getElementById('authBtn');
-    const authText = document.getElementById('authStatusText');
-    if (!auth) {
-      authText.textContent = '💾 Local Storage Mode';
-      return;
-    }
-
-    if (currentUser) {
-      authBtn.className = 'auth-btn signed-in';
-      const name = currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'User';
-      const photo = currentUser.photoURL ? `<img class="user-avatar" src="${currentUser.photoURL}">` : '☁️';
-      authBtn.innerHTML = `${photo} <span>${escapeHtml(name)} (Synced)</span>`;
-      authBtn.onclick = () => {
-        if (confirm("Do you want to Sign Out?")) {
-          auth.signOut();
-        }
-      };
-    } else {
-      authBtn.className = 'auth-btn';
-      authBtn.innerHTML = `<span>☁️ Sign In with Google</span>`;
-      authBtn.onclick = () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(e => alert("Sign-in error: " + e.message));
-      };
-    }
-  }
-
-  // --- RECTIFIED 7-DAY BAR CHART ---
   function renderChart() {
     const chartEl = document.getElementById('barChart');
-    if (!chartEl || !state) return;
+    if (!chartEl) return;
 
     const days = [];
     const today = new Date();
     
+    // Generate last 7 days keys
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const key = getLocalDateKey(d);
-      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-      const sec = Math.round((state.dailyHistory && state.dailyHistory[key]) || 0);
-      days.push({ key, name: dayName, sec, isToday: (i === 0) });
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+      const sec = state.dailyHistory[key] || 0;
+      days.push({ key, name: dayName, sec, isToday: i === 0 });
     }
 
-    const maxSec = Math.max(...days.map(d => d.sec), 1800); 
+    const maxSec = Math.max(...days.map(d => d.sec), 3600); // Scale relative to at least 1 hour
 
     chartEl.innerHTML = days.map(d => {
-      const heightPct = Math.min(100, Math.max(5, (d.sec / maxSec) * 100));
-      const formatted = formatTime(d.sec);
+      const heightPct = Math.min(100, Math.max(6, (d.sec / maxSec) * 100));
       return `
-        <div class="bar-col ${d.isToday ? 'today' : ''}" title="${d.key}: ${formatted}">
-          <span class="bar-val-hint">${d.sec > 0 ? formatted : ''}</span>
+        <div class="bar-col ${d.isToday ? 'today' : ''}" title="${d.key}: ${formatTime(d.sec)}">
           <div class="bar-fill" style="height: ${heightPct}%"></div>
           <span class="bar-label">${d.name}</span>
         </div>
@@ -692,7 +562,6 @@ function rotateQuote() {
   
   function renderSpotlight(){
     const wrap = document.getElementById('spotlight');
-    if (!wrap || !state) return;
     const totalVids = state.config.totalVideos || 1;
     const totalTime = getTotalPlaylistTime();
     const top = sortedPeople().slice(0, 5);
@@ -731,7 +600,6 @@ function rotateQuote() {
   
   function renderLadder(){
     const wrap = document.getElementById('ladder');
-    if (!wrap || !state) return;
     const totalVids = state.config.totalVideos || 1;
     const totalTime = getTotalPlaylistTime();
     const people = sortedPeople();
@@ -773,9 +641,7 @@ function rotateQuote() {
   }
   
   function renderMeCard(){
-    if (!state) return;
     const me = state.people.find(p=>p.isMe);
-    if (!me) return;
     document.getElementById('meOdometer').innerHTML = me.video + ' <span>/ ' + state.config.totalVideos + '</span>';
     document.getElementById('meTime').textContent = `${formatTime(me.seconds)} watched total`;
     document.getElementById('meVideoInput').value = me.video;
@@ -783,8 +649,7 @@ function rotateQuote() {
   
   function renderFeed(){
     const wrap = document.getElementById('feed');
-    if (!wrap || !state) return;
-    wrap.innerHTML = (state.feed || []).slice(0,12).map(ev=>{
+    wrap.innerHTML = state.feed.slice(0,12).map(ev=>{
       return `<div class="feed-item">
         ▸ <b>${escapeHtml(ev.name)}</b> ${escapeHtml(ev.text)}
         <span class="feed-time">${formatTimeAgo(ev.ts)}</span>
@@ -793,10 +658,8 @@ function rotateQuote() {
   }
   
   function renderRoast(){
-    if (!state) return;
     const me = state.people.find(p=>p.isMe);
     const leader = sortedPeople()[0];
-    if (!me || !leader) return;
     
     if (me.id === leader.id && me.seconds > 0) {
       document.getElementById('roastText').textContent = "You're in the lead. Don't let them catch you.";
@@ -812,7 +675,6 @@ function rotateQuote() {
   }
   
   function updateMeVideo(newVal){
-    if (!state) return;
     const me = state.people.find(p=>p.isMe);
     const clamped = clamp(Math.round(newVal), 0, state.config.totalVideos);
     
@@ -824,93 +686,58 @@ function rotateQuote() {
     const oldSec = me.seconds;
     me.seconds = getCumulativeTime(clamped);
     
+    // Record gain into daily history
     const gain = Math.max(0, me.seconds - oldSec);
-    const todayKey = getLocalDateKey();
+    const todayKey = getTodayKey();
     state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + gain;
     
-    if (isPlayerReady && ytPlayer) {
-      try {
-        if (state.videos && state.videos[clamped]) {
-          ytPlayer.loadVideoById(state.videos[clamped].id);
-        } else if (state.config.playlistId) {
-          ytPlayer.playVideoAt(clamped);
-        }
-      } catch(e){}
+    if (isPlayerReady && state.config.playlistId) {
+       ytPlayer.playVideoAt(clamped);
     }
     
     saveState(); renderAll();
-  }
-
-  // --- RESET ALL PROGRESS ---
-  function resetAllProgress() {
-    const conf = confirm("Are you sure you want to reset all watch time, leaderboard stats, and history back to 0?");
-    if (!conf) return;
-
-    if (!state) state = defaultState();
-    state.people.forEach(p => {
-      p.video = 0;
-      p.seconds = 0;
-    });
-    state.dailyHistory = {};
-    state.feed = [];
-    state.lastSaved = Date.now();
-
-    if (isPlayerReady && ytPlayer) {
-      try {
-        ytPlayer.seekTo(0, true);
-        ytPlayer.pauseVideo();
-      } catch(e){}
-    }
-
-    saveState();
-    renderAll();
-    alert("Progress has been completely reset to 0.");
   }
   
   // --- USER AUTO-TRACKING VIA YOUTUBE API ---
   let lastTrackTime = Date.now();
   function trackUserWatchTime() {
-    if (isPlayerReady && ytPlayer && ytPlayer.getPlayerState && state) {
-      try {
-        if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-          let currentIdx = ytPlayer.getPlaylistIndex();
-          const currentVideoTime = ytPlayer.getCurrentTime() || 0;
-          
+    if (isPlayerReady && ytPlayer && ytPlayer.getPlayerState) {
+      if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        const currentIndex = ytPlayer.getPlaylistIndex();
+        const currentVideoTime = ytPlayer.getCurrentTime();
+        
+        if (currentIndex !== -1 && currentIndex !== null) {
           const me = state.people.find(p => p.isMe);
-          if (!me) return;
-
-          if (currentIdx === -1 || currentIdx === null || currentIdx === undefined) {
-            currentIdx = me.video || 0;
-          }
-
-          const baseTime = getCumulativeTime(currentIdx);
+          
+          const baseTime = getCumulativeTime(currentIndex);
           const totalNewSecs = baseTime + currentVideoTime;
           
+          // Daily watch time accumulation
           const now = Date.now();
           const deltaSec = Math.max(0, (now - lastTrackTime) / 1000);
-          if (deltaSec < 5 && deltaSec > 0) {
-            const todayKey = getLocalDateKey();
+          if (deltaSec < 5) { // Prevent spikes from seeking
+            const todayKey = getTodayKey();
             state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + deltaSec;
           }
           
-          if (currentIdx > me.video) {
-            state.feed.unshift({ id:id(), name:'You', text:`started video ${currentIdx + 1}`, ts: Date.now() });
+          if (currentIndex > me.video) {
+             state.feed.unshift({ id:id(), name:'You', text:`started video ${currentIndex + 1}`, ts: Date.now() });
           }
           
-          me.video = currentIdx;
+          me.video = currentIndex;
           me.seconds = totalNewSecs;
           
           saveState();
           renderAll(); 
         }
-      } catch(e){}
+      }
     }
     lastTrackTime = Date.now();
   }
 
   // --- BOT SIMULATION ENGINE ---
   function liveTick(){
-    if(!state || !state.config || !state.config.isLive) return;
+    if(!state.config.isLive) return;
     const total = state.config.totalVideos;
     let uiNeedsUpdate = false;
     
@@ -924,7 +751,7 @@ function rotateQuote() {
         
         setTimeout(() => {
           delete typingStates[p.id];
-          if(!state || !state.config || !state.config.isLive) return;
+          if(!state.config.isLive) return;
           
           p.seconds += pace.watchSec; 
           
@@ -946,7 +773,6 @@ function rotateQuote() {
   }
   
   function updateConfigManually(){
-    if (!state) return;
     const newName = document.getElementById('playlistName').value.trim();
     const newTotalStr = document.getElementById('totalVideos').value;
     const newTotal = parseInt(newTotalStr, 10);
@@ -964,7 +790,7 @@ function rotateQuote() {
     saveState(); renderAll();
   }
   
-  // --- DEEP TIME SYNC WITH FALLBACK ---
+  // --- YOUTUBE DATA API: DEEP TIME SYNC ---
   async function fetchPlaylistInfo(){
     const url = document.getElementById('playlistUrl').value.trim();
     const status = document.getElementById('fetchStatus');
@@ -982,8 +808,6 @@ function rotateQuote() {
     status.className = 'fetch-status load';
     status.textContent = '1/3: Locating Playlist...';
   
-    if (!state) state = defaultState();
-
     try {
       const pRes = await fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${YOUTUBE_API_KEY}`);
       const pData = await pRes.json();
@@ -1003,11 +827,7 @@ function rotateQuote() {
         const itemData = await itemRes.json();
         if(itemData.error) throw new Error(itemData.error.message);
         if(itemData.items) {
-          itemData.items.forEach(i => {
-            if (i.contentDetails && i.contentDetails.videoId) {
-              allVideoIds.push(i.contentDetails.videoId);
-            }
-          });
+          itemData.items.forEach(i => allVideoIds.push(i.contentDetails.videoId));
         }
         nextPageToken = itemData.nextPageToken;
       } while(nextPageToken && allVideoIds.length < 500); 
@@ -1028,7 +848,6 @@ function rotateQuote() {
         }
       }
   
-      if (!state) state = defaultState();
       state.videos = newVideosData;
       state.config.totalVideos = newVideosData.length;
       state.config.playlistName = title;
@@ -1042,48 +861,27 @@ function rotateQuote() {
   
       const totalTimeStr = formatTime(getTotalPlaylistTime());
       status.className = 'fetch-status ok';
-      status.textContent = `Success! Playlist mapped (${newVideosData.length} videos, ${totalTimeStr}). Press Play to track.`;
+      status.textContent = `Success! Playlist mapped. Press Play to start tracking automatically.`;
       
-      saveState(); 
-      renderAll();
+      saveState(); renderAll();
       window.cueLoadedPlaylist();
       
     } catch(e) {
-      console.warn("YouTube API call error, falling back to noembed:", e);
-      try {
-        const canonicalUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
-        const fbRes = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(canonicalUrl)}`);
-        const fbData = await fbRes.json();
-        
-        const fallbackTitle = fbData.title || "YouTube Playlist";
-        state.config.playlistName = fallbackTitle;
-        state.config.playlistId = playlistId;
-        state.config.playlistUrl = canonicalUrl;
-        state.videos = []; 
-
-        saveState();
-        renderAll();
-        window.cueLoadedPlaylist();
-
-        status.className = 'fetch-status ok';
-        status.textContent = `Synced "${fallbackTitle}". Player loaded! (Note: ${e.message}).`;
-      } catch(fallbackErr) {
-        status.className = 'fetch-status err';
-        status.textContent = `Could not fetch automatically (${e.message}). Set playlist count manually.`;
-      }
+      status.className = 'fetch-status err';
+      status.textContent = `API Error: ${e.message}`;
     } finally {
       btn.disabled = false;
     }
   }
 
-  // --- TAB VISIBILITY & INTERVALS ---
+  // --- TAB VISIBILITY LISTENER (Triggers quote when leaving tab) ---
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       rotateQuote();
     }
   });
   
-  // --- EVENT LISTENERS ---
+  // --- Event Listeners ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
   document.getElementById('playlistName').addEventListener('change', updateConfigManually);
   document.getElementById('totalVideos').addEventListener('change', updateConfigManually);
@@ -1091,11 +889,10 @@ function rotateQuote() {
   document.getElementById('meMinus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video - 1));
   document.getElementById('mePlus').addEventListener('click', ()=> updateMeVideo(state.people.find(p=>p.isMe).video + 1));
   document.getElementById('meVideoInput').addEventListener('change', (e)=> updateMeVideo(parseInt(e.target.value,10) || 0));
-  document.getElementById('resetProgressBtn').addEventListener('click', resetAllProgress);
   
   document.getElementById('addBtn').addEventListener('click', ()=>{
     const name = document.getElementById('newName').value.trim();
-    if(name && state) {
+    if(name) {
       state.people.push({ id:id(), name, effort:document.getElementById('newEffort').value, video:0, seconds:0 });
       saveState(); renderAll();
       document.getElementById('newName').value = '';
@@ -1103,7 +900,6 @@ function rotateQuote() {
   });
   
   document.getElementById('pauseBtn').addEventListener('click', ()=>{
-    if (!state || !state.config) return;
     state.config.isLive = !state.config.isLive;
     document.getElementById('liveBadge').classList.toggle('paused', !state.config.isLive);
     document.getElementById('liveBadgeText').textContent = state.config.isLive ? 'LIVE' : 'PAUSED';
@@ -1111,23 +907,7 @@ function rotateQuote() {
     saveState();
   });
   
-  // --- AUTH STATE LISTENER & INIT ---
-  if (auth) {
-    auth.onAuthStateChanged(user => {
-      currentUser = user;
-      if (user && state) {
-        const me = state.people ? state.people.find(p => p.isMe) : null;
-        if (me && user.displayName) me.name = user.displayName;
-      }
-      loadState();
-    });
-  } else {
-    loadState();
-  }
-
-  setInterval(liveTick, TICK_MS); 
-  setInterval(trackUserWatchTime, 1000);
-  setInterval(rotateQuote, 15 * 60 * 1000);
+  loadState();
 })();
 </script>
 </body>
