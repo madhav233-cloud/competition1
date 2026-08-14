@@ -1,12 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grind | Real-Time Study Tracker</title>
+<title>The Grind | Cloud-Synced Study Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase App & Services (Compat CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
 <style>
   :root{
     --bg:#15172A;
@@ -36,7 +44,7 @@
   }
   .page{ max-width:1040px; margin:0 auto; }
 
-  /* ---------- Header ---------- */
+  /* ---------- Header & Auth Bar ---------- */
   .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
   .kicker{ display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); }
   h1{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(30px, 5vw, 42px); letter-spacing:-.01em; margin-top:5px; text-shadow:0 0 30px rgba(185,142,255,0.18); }
@@ -45,8 +53,10 @@
   .live-badge{ display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:7px 12px 7px 10px; border-radius:100px; }
   .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulseDot 1.6s infinite; }
   .live-badge.paused .live-dot{ background:var(--dim); animation:none; }
-  .pause-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; }
-  .pause-btn:hover{ border-color:var(--border-strong); color:var(--text); }
+  .pause-btn, .auth-btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:8px 12px; border-radius:100px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+  .pause-btn:hover, .auth-btn:hover{ border-color:var(--border-strong); color:var(--text); }
+  .auth-btn.signed-in{ border-color:rgba(110,231,183,0.3); color:var(--green); }
+  .user-avatar{ width:18px; height:18px; border-radius:50%; object-fit:cover; }
   @keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 70%{ box-shadow:0 0 0 7px rgba(110,231,183,0); } 100%{ box-shadow:0 0 0 0 rgba(110,231,183,0); } }
 
   /* Permanent Quote Banner */
@@ -183,16 +193,16 @@
 </head>
 <body>
 
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <div class="page">
   <div class="top">
     <div>
-      <span class="kicker">● Auto-Tracking Study Dashboard</span>
+      <span class="kicker">● Cloud-Synced Study Tracker</span>
       <h1 id="pageTitle">Ladder</h1>
     </div>
     <div class="live-cluster">
+      <button class="auth-btn" id="authBtn">
+        <span id="authStatusText">☁️ Sign In with Google</span>
+      </button>
       <span class="live-badge" id="liveBadge"><span class="live-dot"></span><span id="liveBadgeText">LIVE</span></span>
       <button class="pause-btn" id="pauseBtn">Pause Bots</button>
     </div>
@@ -289,7 +299,35 @@
 </div>
 
 <script>
-// --- QUOTES LIST ---
+// ==========================================
+// 1. YOUR INTEGRATED FIREBASE CONFIGURATION
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCiYHHlKVcAEL0nr_eOxwpkEtKfn6aa94s",
+  authDomain: "study-track-a402c.firebaseapp.com",
+  databaseURL: "https://study-track-a402c-default-rtdb.firebaseio.com",
+  projectId: "study-track-a402c",
+  storageBucket: "study-track-a402c.firebasestorage.app",
+  messagingSenderId: "123362958005",
+  appId: "1:123362958005:web:845a1b02d59add77fffcfc",
+  measurementId: "G-4THTBD4L5C"
+};
+
+let db = null;
+let auth = null;
+let currentUser = null;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+} catch(e) {
+  console.warn("Firebase initialization error:", e);
+}
+
+// ==========================================
+// 2. MOTIVATIONAL QUOTES REPOSITORY
+// ==========================================
 const QUOTES = [
   "While you're staring at an easy problem, someone two years younger is optimizing a dynamic programming solution for the exact job you want.",
   "Nobody cares about your potential when your code throws a Time Limit Exceeded error.",
@@ -364,8 +402,6 @@ function onYouTubeIframeAPIReady() {
 function onPlayerStateChange(event) {
   const prevState = isUserPlaying;
   isUserPlaying = (event.data === YT.PlayerState.PLAYING);
-  
-  // Trigger quote when user stops or pauses video
   if (prevState && !isUserPlaying) {
     rotateQuote();
   }
@@ -382,9 +418,12 @@ function rotateQuote() {
   }
 }
 
+// ==========================================
+// 3. MAIN APPLICATION LOGIC
+// ==========================================
 (function(){
   const YOUTUBE_API_KEY = 'AIzaSyAydmTYrKkNPHmupdHTyNFtzDsts4--3ks';
-  const STORAGE_KEY = 'grind-ladder-auto-player-v2';
+  const STORAGE_KEY = 'grind-ladder-cloud-v1';
   const TICK_MS = 3000; 
   
   const PACE = {
@@ -406,6 +445,7 @@ function rotateQuote() {
 
   let state = null;
   let typingStates = {};
+  let saveDebounceTimer = null;
   
   function id(){ return Math.random().toString(36).slice(2,10); }
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
@@ -454,7 +494,7 @@ function rotateQuote() {
       config: { playlistName:'DSA Placement Sheet (Default)', playlistId: '', playlistUrl:'', totalVideos: 150, isLive: true },
       videos: [],
       lastSaved: Date.now(),
-      dailyHistory: {}, // { "YYYY-MM-DD": seconds }
+      dailyHistory: {},
       people: [
         { id:'me', name:'You', effort:'me', video:0, seconds:0, isMe:true },
         { id:id(), name:'Rohan', effort:'elite', video:0, seconds:0 },
@@ -476,10 +516,22 @@ function rotateQuote() {
     return `${Math.floor(s / 60)}m ago`;
   }
   
-  function loadState(){
+  // --- STATE LOAD & CLOUD RECOVERY ---
+  async function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
     if (!state.dailyHistory) state.dailyHistory = {};
+
+    if (db && currentUser) {
+      try {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists) {
+          state = { ...defaultState(), ...doc.data() };
+        }
+      } catch(e) {
+        console.error("Error loading user cloud state:", e);
+      }
+    }
     
     const timeOffline = Date.now() - (state.lastSaved || Date.now());
     const missedTicks = Math.floor(timeOffline / TICK_MS);
@@ -504,16 +556,22 @@ function rotateQuote() {
     state.lastSaved = Date.now();
     rotateQuote();
     renderAll();
-    
-    // Intervals
-    setInterval(liveTick, TICK_MS); 
-    setInterval(trackUserWatchTime, 1000);
-    setInterval(rotateQuote, 15 * 60 * 1000); // 15 Minute Quote Rotation
   }
   
   function saveState(){ 
     state.lastSaved = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
+
+    if (db && currentUser) {
+      if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+      saveDebounceTimer = setTimeout(async () => {
+        try {
+          await db.collection('users').doc(currentUser.uid).set(state);
+        } catch(e) {
+          console.error("Firestore cloud sync failed:", e);
+        }
+      }, 1200);
+    }
   }
   
   function sortedPeople(){ return [...state.people].sort((a,b)=> b.seconds - a.seconds); }
@@ -529,6 +587,35 @@ function rotateQuote() {
     renderFeed();
     renderRoast();
     renderChart();
+    renderAuthUI();
+  }
+
+  function renderAuthUI() {
+    const authBtn = document.getElementById('authBtn');
+    const authText = document.getElementById('authStatusText');
+    if (!auth) {
+      authText.textContent = '💾 Local Storage Mode';
+      return;
+    }
+
+    if (currentUser) {
+      authBtn.className = 'auth-btn signed-in';
+      const name = currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'User';
+      const photo = currentUser.photoURL ? `<img class="user-avatar" src="${currentUser.photoURL}">` : '☁️';
+      authBtn.innerHTML = `${photo} <span>${escapeHtml(name)} (Synced)</span>`;
+      authBtn.onclick = () => {
+        if (confirm("Do you want to Sign Out?")) {
+          auth.signOut();
+        }
+      };
+    } else {
+      authBtn.className = 'auth-btn';
+      authBtn.innerHTML = `<span>☁️ Sign In with Google</span>`;
+      authBtn.onclick = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(e => alert("Sign-in failed: " + e.message));
+      };
+    }
   }
 
   function renderChart() {
@@ -538,7 +625,6 @@ function rotateQuote() {
     const days = [];
     const today = new Date();
     
-    // Generate last 7 days keys
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
@@ -548,7 +634,7 @@ function rotateQuote() {
       days.push({ key, name: dayName, sec, isToday: i === 0 });
     }
 
-    const maxSec = Math.max(...days.map(d => d.sec), 3600); // Scale relative to at least 1 hour
+    const maxSec = Math.max(...days.map(d => d.sec), 3600); 
 
     chartEl.innerHTML = days.map(d => {
       const heightPct = Math.min(100, Math.max(6, (d.sec / maxSec) * 100));
@@ -687,7 +773,6 @@ function rotateQuote() {
     const oldSec = me.seconds;
     me.seconds = getCumulativeTime(clamped);
     
-    // Record gain into daily history
     const gain = Math.max(0, me.seconds - oldSec);
     const todayKey = getTodayKey();
     state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + gain;
@@ -713,10 +798,9 @@ function rotateQuote() {
           const baseTime = getCumulativeTime(currentIndex);
           const totalNewSecs = baseTime + currentVideoTime;
           
-          // Daily watch time accumulation
           const now = Date.now();
           const deltaSec = Math.max(0, (now - lastTrackTime) / 1000);
-          if (deltaSec < 5) { // Prevent spikes from seeking
+          if (deltaSec < 5) {
             const todayKey = getTodayKey();
             state.dailyHistory[todayKey] = (state.dailyHistory[todayKey] || 0) + deltaSec;
           }
@@ -875,14 +959,14 @@ function rotateQuote() {
     }
   }
 
-  // --- TAB VISIBILITY LISTENER (Triggers quote when leaving tab) ---
+  // --- TAB VISIBILITY & INTERVALS ---
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       rotateQuote();
     }
   });
   
-  // --- Event Listeners ---
+  // --- EVENT LISTENERS ---
   document.getElementById('fetchBtn').addEventListener('click', fetchPlaylistInfo);
   document.getElementById('playlistName').addEventListener('change', updateConfigManually);
   document.getElementById('totalVideos').addEventListener('change', updateConfigManually);
@@ -908,10 +992,24 @@ function rotateQuote() {
     saveState();
   });
   
-  loadState();
+  // --- AUTH STATE LISTENER & INIT ---
+  if (auth) {
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+      if (user) {
+        const me = state.people.find(p => p.isMe);
+        if (me && user.displayName) me.name = user.displayName;
+      }
+      loadState();
+    });
+  } else {
+    loadState();
+  }
+
+  setInterval(liveTick, TICK_MS); 
+  setInterval(trackUserWatchTime, 1000);
+  setInterval(rotateQuote, 15 * 60 * 1000);
 })();
 </script>
 </body>
 </html>
-
-```
