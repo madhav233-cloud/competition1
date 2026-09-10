@@ -9,4 +9,5 @@ Custom progress bar to account for previous progress is available .
 
 # Code Detail
 HTML File with inline CSS and JS . 
+
 Youtube API used to access playlist data for the given youtube playlist link . 
